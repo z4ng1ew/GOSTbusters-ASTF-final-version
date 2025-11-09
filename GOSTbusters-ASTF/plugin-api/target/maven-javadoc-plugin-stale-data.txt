@@ -1,0 +1,114 @@
+-J-Duser.language=
+-J-Duser.country=
+@options
+@packages
+-classpath
+'C:/Users/user/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.15.3/jackson-databind-2.15.3.jar;C:/Users/user/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.15.3/jackson-annotations-2.15.3.jar;C:/Users/user/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.15.3/jackson-core-2.15.3.jar;C:/Users/user/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.15.3/jackson-dataformat-yaml-2.15.3.jar;C:/Users/user/.m2/repository/org/yaml/snakeyaml/2.1/snakeyaml-2.1.jar;C:/Users/user/.m2/repository/org/apache/logging/log4j/log4j-api/2.22.1/log4j-api-2.22.1.jar;C:/Users/user/.m2/repository/com/squareup/okhttp3/okhttp/4.12.0/okhttp-4.12.0.jar;C:/Users/user/.m2/repository/com/squareup/okio/okio/3.6.0/okio-3.6.0.jar;C:/Users/user/.m2/repository/com/squareup/okio/okio-jvm/3.6.0/okio-jvm-3.6.0.jar;C:/Users/user/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-common/1.9.10/kotlin-stdlib-common-1.9.10.jar;C:/Users/user/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.8.21/kotlin-stdlib-jdk8-1.8.21.jar;C:/Users/user/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib/1.8.21/kotlin-stdlib-1.8.21.jar;C:/Users/user/.m2/repository/org/jetbrains/annotations/13.0/annotations-13.0.jar;C:/Users/user/.m2/repository/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.8.21/kotlin-stdlib-jdk7-1.8.21.jar;C:/Users/user/.m2/repository/info/picocli/picocli/4.7.5/picocli-4.7.5.jar;C:/Users/user/.m2/repository/org/apache/logging/log4j/log4j-core/2.22.1/log4j-core-2.22.1.jar;C:/Users/user/.m2/repository/org/apache/logging/log4j/log4j-slf4j2-impl/2.22.1/log4j-slf4j2-impl-2.22.1.jar;C:/Users/user/.m2/repository/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar;C:/Users/user/.m2/repository/io/swagger/parser/v3/swagger-parser/2.1.22/swagger-parser-2.1.22.jar;C:/Users/user/.m2/repository/io/swagger/parser/v3/swagger-parser-v2-converter/2.1.22/swagger-parser-v2-converter-2.1.22.jar;C:/Users/user/.m2/repository/io/swagger/swagger-core/1.6.14/swagger-core-1.6.14.jar;C:/Users/user/.m2/repository/jakarta/xml/bind/jakarta.xml.bind-api/2.3.3/jakarta.xml.bind-api-2.3.3.jar;C:/Users/user/.m2/repository/jakarta/activation/jakarta.activation-api/1.2.2/jakarta.activation-api-1.2.2.jar;C:/Users/user/.m2/repository/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar;C:/Users/user/.m2/repository/io/swagger/swagger-models/1.6.14/swagger-models-1.6.14.jar;C:/Users/user/.m2/repository/io/swagger/swagger-annotations/1.6.14/swagger-annotations-1.6.14.jar;C:/Users/user/.m2/repository/com/google/guava/guava/32.1.3-android/guava-32.1.3-android.jar;C:/Users/user/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar;C:/Users/user/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar;C:/Users/user/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar;C:/Users/user/.m2/repository/org/checkerframework/checker-qual/3.37.0/checker-qual-3.37.0.jar;C:/Users/user/.m2/repository/com/google/errorprone/error_prone_annotations/2.21.1/error_prone_annotations-2.21.1.jar;C:/Users/user/.m2/repository/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar;C:/Users/user/.m2/repository/io/swagger/swagger-parser/1.0.70/swagger-parser-1.0.70.jar;C:/Users/user/.m2/repository/io/swagger/swagger-parser-safe-url-resolver/1.0.70/swagger-parser-safe-url-resolver-1.0.70.jar;C:/Users/user/.m2/repository/io/swagger/swagger-compat-spec-parser/1.0.70/swagger-compat-spec-parser-1.0.70.jar;C:/Users/user/.m2/repository/com/github/java-json-tools/json-schema-validator/2.2.14/json-schema-validator-2.2.14.jar;C:/Users/user/.m2/repository/com/github/java-json-tools/jackson-coreutils-equivalence/1.0/jackson-coreutils-equivalence-1.0.jar;C:/Users/user/.m2/repository/com/github/java-json-tools/json-schema-core/1.2.14/json-schema-core-1.2.14.jar;C:/Users/user/.m2/repository/com/github/java-json-tools/uri-template/0.10/uri-template-0.10.jar;C:/Users/user/.m2/repository/org/mozilla/rhino/1.7.7.2/rhino-1.7.7.2.jar;C:/Users/user/.m2/repository/joda-time/joda-time/2.10.5/joda-time-2.10.5.jar;C:/Users/user/.m2/repository/com/googlecode/libphonenumber/libphonenumber/8.11.1/libphonenumber-8.11.1.jar;C:/Users/user/.m2/repository/net/sf/jopt-simple/jopt-simple/5.0.4/jopt-simple-5.0.4.jar;C:/Users/user/.m2/repository/com/github/java-json-tools/json-patch/1.13/json-patch-1.13.jar;C:/Users/user/.m2/repository/com/github/java-json-tools/msg-simple/1.2/msg-simple-1.2.jar;C:/Users/user/.m2/repository/com/github/java-json-tools/btf/1.3/btf-1.3.jar;C:/Users/user/.m2/repository/com/github/java-json-tools/jackson-coreutils/2.0/jackson-coreutils-2.0.jar;C:/Users/user/.m2/repository/org/apache/httpcomponents/httpclient/4.5.14/httpclient-4.5.14.jar;C:/Users/user/.m2/repository/org/apache/httpcomponents/httpcore/4.4.16/httpcore-4.4.16.jar;C:/Users/user/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar;C:/Users/user/.m2/repository/commons-codec/commons-codec/1.11/commons-codec-1.11.jar;C:/Users/user/.m2/repository/io/swagger/core/v3/swagger-models/2.2.21/swagger-models-2.2.21.jar;C:/Users/user/.m2/repository/io/swagger/parser/v3/swagger-parser-core/2.1.22/swagger-parser-core-2.1.22.jar;C:/Users/user/.m2/repository/io/swagger/parser/v3/swagger-parser-v3/2.1.22/swagger-parser-v3-2.1.22.jar;C:/Users/user/.m2/repository/io/swagger/core/v3/swagger-core/2.2.21/swagger-core-2.2.21.jar;C:/Users/user/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.16.2/jackson-datatype-jsr310-2.16.2.jar;C:/Users/user/.m2/repository/io/swagger/core/v3/swagger-annotations/2.2.21/swagger-annotations-2.2.21.jar;C:/Users/user/.m2/repository/jakarta/validation/jakarta.validation-api/2.0.2/jakarta.validation-api-2.0.2.jar;C:/Users/user/.m2/repository/io/swagger/parser/v3/swagger-parser-safe-url-resolver/2.1.22/swagger-parser-safe-url-resolver-2.1.22.jar;C:/Users/user/.m2/repository/commons-io/commons-io/2.15.1/commons-io-2.15.1.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'21'
+-sourcepath
+'C:/Users/user/Desktop/www-project-api-security-testing-framework-main/plugin-api/src/main/java;C:/Users/user/Desktop/www-project-api-security-testing-framework-main/plugin-api/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 2025. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/Users/user/Desktop/www-project-api-security-testing-framework-main/plugin-api/target/reports/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'OWASP ASTF Plugin API 1.0-SNAPSHOT API'
+-use
+-version
+-windowtitle
+'OWASP ASTF Plugin API 1.0-SNAPSHOT API'
+org.owasp.astf.plugin
+org.owasp.astf.shared
+org.owasp.astf.shared.result
+C:\Users\user\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.15.3\jackson-databind-2.15.3.jar = 1761914635916
+C:\Users\user\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.15.3\jackson-annotations-2.15.3.jar = 1761914635394
+C:\Users\user\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.15.3\jackson-core-2.15.3.jar = 1761914635538
+C:\Users\user\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.15.3\jackson-dataformat-yaml-2.15.3.jar = 1761914636357
+C:\Users\user\.m2\repository\org\yaml\snakeyaml\2.1\snakeyaml-2.1.jar = 1761914636432
+C:\Users\user\.m2\repository\org\apache\logging\log4j\log4j-api\2.22.1\log4j-api-2.22.1.jar = 1761914635645
+C:\Users\user\.m2\repository\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar = 1761914635052
+C:\Users\user\.m2\repository\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar = 1761914635295
+C:\Users\user\.m2\repository\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar = 1761914635180
+C:\Users\user\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.10\kotlin-stdlib-common-1.9.10.jar = 1761914635419
+C:\Users\user\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.8.21\kotlin-stdlib-jdk8-1.8.21.jar = 1761914635295
+C:\Users\user\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.8.21\kotlin-stdlib-1.8.21.jar = 1761914635798
+C:\Users\user\.m2\repository\org\jetbrains\annotations\13.0\annotations-13.0.jar = 1761914635278
+C:\Users\user\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.8.21\kotlin-stdlib-jdk7-1.8.21.jar = 1761914635378
+C:\Users\user\.m2\repository\info\picocli\picocli\4.7.5\picocli-4.7.5.jar = 1761914635810
+C:\Users\user\.m2\repository\org\apache\logging\log4j\log4j-core\2.22.1\log4j-core-2.22.1.jar = 1761914635945
+C:\Users\user\.m2\repository\org\apache\logging\log4j\log4j-slf4j2-impl\2.22.1\log4j-slf4j2-impl-2.22.1.jar = 1761914635884
+C:\Users\user\.m2\repository\org\slf4j\slf4j-api\2.0.9\slf4j-api-2.0.9.jar = 1761914635957
+C:\Users\user\.m2\repository\io\swagger\parser\v3\swagger-parser\2.1.22\swagger-parser-2.1.22.jar = 1761926164203
+C:\Users\user\.m2\repository\io\swagger\parser\v3\swagger-parser-v2-converter\2.1.22\swagger-parser-v2-converter-2.1.22.jar = 1761926164958
+C:\Users\user\.m2\repository\io\swagger\swagger-core\1.6.14\swagger-core-1.6.14.jar = 1761926164461
+C:\Users\user\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\2.3.3\jakarta.xml.bind-api-2.3.3.jar = 1761926164483
+C:\Users\user\.m2\repository\jakarta\activation\jakarta.activation-api\1.2.2\jakarta.activation-api-1.2.2.jar = 1761926164465
+C:\Users\user\.m2\repository\org\apache\commons\commons-lang3\3.14.0\commons-lang3-3.14.0.jar = 1761915238536
+C:\Users\user\.m2\repository\io\swagger\swagger-models\1.6.14\swagger-models-1.6.14.jar = 1761926164395
+C:\Users\user\.m2\repository\io\swagger\swagger-annotations\1.6.14\swagger-annotations-1.6.14.jar = 1761926164505
+C:\Users\user\.m2\repository\com\google\guava\guava\32.1.3-android\guava-32.1.3-android.jar = 1761926165121
+C:\Users\user\.m2\repository\com\google\guava\failureaccess\1.0.1\failureaccess-1.0.1.jar = 1761926164561
+C:\Users\user\.m2\repository\com\google\guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar = 1761926164582
+C:\Users\user\.m2\repository\com\google\code\findbugs\jsr305\3.0.2\jsr305-3.0.2.jar = 1761926164608
+C:\Users\user\.m2\repository\org\checkerframework\checker-qual\3.37.0\checker-qual-3.37.0.jar = 1761926164747
+C:\Users\user\.m2\repository\com\google\errorprone\error_prone_annotations\2.21.1\error_prone_annotations-2.21.1.jar = 1761926164688
+C:\Users\user\.m2\repository\com\google\j2objc\j2objc-annotations\2.8\j2objc-annotations-2.8.jar = 1761926164709
+C:\Users\user\.m2\repository\io\swagger\swagger-parser\1.0.70\swagger-parser-1.0.70.jar = 1761926164799
+C:\Users\user\.m2\repository\io\swagger\swagger-parser-safe-url-resolver\1.0.70\swagger-parser-safe-url-resolver-1.0.70.jar = 1761926164839
+C:\Users\user\.m2\repository\io\swagger\swagger-compat-spec-parser\1.0.70\swagger-compat-spec-parser-1.0.70.jar = 1761926164863
+C:\Users\user\.m2\repository\com\github\java-json-tools\json-schema-validator\2.2.14\json-schema-validator-2.2.14.jar = 1761926164952
+C:\Users\user\.m2\repository\com\github\java-json-tools\jackson-coreutils-equivalence\1.0\jackson-coreutils-equivalence-1.0.jar = 1761926164967
+C:\Users\user\.m2\repository\com\github\java-json-tools\json-schema-core\1.2.14\json-schema-core-1.2.14.jar = 1761926164967
+C:\Users\user\.m2\repository\com\github\java-json-tools\uri-template\0.10\uri-template-0.10.jar = 1761926165103
+C:\Users\user\.m2\repository\org\mozilla\rhino\1.7.7.2\rhino-1.7.7.2.jar = 1761926169068
+C:\Users\user\.m2\repository\joda-time\joda-time\2.10.5\joda-time-2.10.5.jar = 1761926165208
+C:\Users\user\.m2\repository\com\googlecode\libphonenumber\libphonenumber\8.11.1\libphonenumber-8.11.1.jar = 1761926165315
+C:\Users\user\.m2\repository\net\sf\jopt-simple\jopt-simple\5.0.4\jopt-simple-5.0.4.jar = 1761926165237
+C:\Users\user\.m2\repository\com\github\java-json-tools\json-patch\1.13\json-patch-1.13.jar = 1761926165233
+C:\Users\user\.m2\repository\com\github\java-json-tools\msg-simple\1.2\msg-simple-1.2.jar = 1761926165309
+C:\Users\user\.m2\repository\com\github\java-json-tools\btf\1.3\btf-1.3.jar = 1761926165340
+C:\Users\user\.m2\repository\com\github\java-json-tools\jackson-coreutils\2.0\jackson-coreutils-2.0.jar = 1761926165348
+C:\Users\user\.m2\repository\org\apache\httpcomponents\httpclient\4.5.14\httpclient-4.5.14.jar = 1761926165528
+C:\Users\user\.m2\repository\org\apache\httpcomponents\httpcore\4.4.16\httpcore-4.4.16.jar = 1761926165503
+C:\Users\user\.m2\repository\commons-logging\commons-logging\1.2\commons-logging-1.2.jar = 1761926165488
+C:\Users\user\.m2\repository\commons-codec\commons-codec\1.11\commons-codec-1.11.jar = 1761926165511
+C:\Users\user\.m2\repository\io\swagger\core\v3\swagger-models\2.2.21\swagger-models-2.2.21.jar = 1761926165606
+C:\Users\user\.m2\repository\io\swagger\parser\v3\swagger-parser-core\2.1.22\swagger-parser-core-2.1.22.jar = 1761926165624
+C:\Users\user\.m2\repository\io\swagger\parser\v3\swagger-parser-v3\2.1.22\swagger-parser-v3-2.1.22.jar = 1761926165626
+C:\Users\user\.m2\repository\io\swagger\core\v3\swagger-core\2.2.21\swagger-core-2.2.21.jar = 1761926165646
+C:\Users\user\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.16.2\jackson-datatype-jsr310-2.16.2.jar = 1761926165722
+C:\Users\user\.m2\repository\io\swagger\core\v3\swagger-annotations\2.2.21\swagger-annotations-2.2.21.jar = 1761926165730
+C:\Users\user\.m2\repository\jakarta\validation\jakarta.validation-api\2.0.2\jakarta.validation-api-2.0.2.jar = 1761926165745
+C:\Users\user\.m2\repository\io\swagger\parser\v3\swagger-parser-safe-url-resolver\2.1.22\swagger-parser-safe-url-resolver-2.1.22.jar = 1761926165757
+C:\Users\user\.m2\repository\commons-io\commons-io\2.15.1\commons-io-2.15.1.jar = 1761926165921
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\src\main\java = 1762282600496
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\generated-sources\annotations = 1762298952127
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\allclasses-index.html = 1762298956819
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\allpackages-index.html = 1762298956823
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\copy.svg = 1762298956864
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\element-list = 1762298956721
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\help-doc.html = 1762298956858
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\index-all.html = 1762298956849
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\index.html = 1762298956803
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\link.svg = 1762298956866
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\member-search-index.js = 1762298956830
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\module-search-index.js = 1762298956825
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\overview-summary.html = 1762298956853
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\overview-tree.html = 1762298956799
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\package-search-index.js = 1762298956827
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\script.js = 1762298956863
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\search-page.js = 1762298956871
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\search.html = 1762298956851
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\search.js = 1762298956869
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\stylesheet.css = 1762298956861
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\tag-search-index.js = 1762298956832
+C:\Users\user\Desktop\www-project-api-security-testing-framework-main\plugin-api\target\reports\apidocs\type-search-index.js = 1762298956828

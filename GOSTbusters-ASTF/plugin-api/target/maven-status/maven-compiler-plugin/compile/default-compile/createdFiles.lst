@@ -1,0 +1,6 @@
+org\owasp\astf\plugin\Plugin.class
+org\owasp\astf\shared\result\Severity.class
+org\owasp\astf\shared\result\Finding.class
+org\owasp\astf\shared\EndpointInfo.class
+org\owasp\astf\plugin\PluginLoader.class
+org\owasp\astf\shared\http\HttpClient.class

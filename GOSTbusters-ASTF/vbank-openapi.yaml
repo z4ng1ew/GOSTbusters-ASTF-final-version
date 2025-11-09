@@ -1,0 +1,2289 @@
+openapi: 3.1.0
+info:
+  title: Virtual Bank API
+  version: "2.1"
+paths:
+  /auth/bank-token:
+    post:
+      tags:
+        - 0 Аутентификация вызывающей системы
+        - 0 Аутентификация вызывающей системы
+      summary: Create Bank Token
+      description: |-
+        ## 🎯 Получение токена для работы с API банка
+
+        **Этот endpoint - точка входа для всех участников хакатона!**
+
+        Токен выдается банком, У КОТОРОГО вы запрашиваете данные.
+        Каждый банк подписывает токен своим приватным ключом (RS256).
+
+        ### Где взять credentials?
+
+        Получите у организаторов хакатона:
+        - `client_id` — код вашей команды (например: team200)
+        - `client_secret` — ваш секретный ключ (API key)
+
+        ### Пример запроса:
+
+        ```bash
+        # Получить токен для запросов к VBank
+        POST https://vbank.open.bankingapi.ru/auth/bank-token
+        ?client_id=team200
+        &client_secret=5OAaa4DYzYKfnOU6zbR34ic5qMm7VSMB
+
+        # Ответ:
+        {
+          "access_token": "eyJ...",
+          "token_type": "bearer",
+          "client_id": "team200",
+          "expires_in": 86400
+        }
+        ```
+
+        ### Использование токена:
+
+        ```bash
+        GET https://vbank.open.bankingapi.ru/accounts
+        Headers:
+          Authorization: Bearer eyJ...
+        ```
+
+        ### Важно:
+
+        - Токен валиден 24 часа
+        - Для каждого банка нужен свой токен (VBank, ABank, SBank)
+        - Токен подписан приватным ключом банка (RS256)
+        - Публичный ключ: `/.well-known/jwks.json`
+
+        ### Межбанковые запросы:
+
+        Для получения данных клиента из другого банка добавьте:
+        ```
+        X-Requesting-Bank: your_client_id
+        ```
+        И создайте согласие: `POST /account-consents`
+      operationId: create_bank_token_auth_bank_token_post
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+            description: ID команды от организаторов
+            title: Client Id
+          description: ID команды от организаторов
+          example: team200
+        - name: client_secret
+          in: query
+          required: true
+          schema:
+            type: string
+            description: Secret команды от организаторов
+            title: Client Secret
+          description: Secret команды от организаторов
+          example: 5OAaa4DYzYKfnOU6zbR34ic5qMm7VSMB
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /accounts:
+    get:
+      tags:
+        - 2 Счета и балансы
+      summary: 1. Получить список счетов
+      description: >-
+        ## 💳 Получение списка счетов клиента
+
+
+        ### Два режима работы:
+
+
+        #### 1️⃣ Запрос своих счетов (в том же банке)
+
+        ```bash
+
+        GET /accounts
+
+        Headers:
+          Authorization: Bearer <client_token>
+        ```
+
+
+        #### 2️⃣ Межбанковый запрос (с согласием)
+
+        ```bash
+
+        GET /accounts?client_id=cli-ab-001
+
+        Headers:
+          Authorization: Bearer <bank_token>
+          X-Requesting-Bank: team200
+          X-Consent-Id: <consent_id>
+        ```
+
+
+        ### Ответ содержит:
+
+        - `account_id` — уникальный идентификатор счета
+
+        - `currency` — валюта (RUB, USD, EUR)
+
+        - `account_type` — тип счета (Personal, Business)
+
+        - `nickname` — название счета
+
+        - `servicer` — информация о банке
+
+
+        ### ⚠️ Важно для межбанковых запросов:
+
+        1. Сначала создайте согласие: `POST /account-consents/request`
+
+        2. Клиент должен одобрить согласие в банке-владельце счетов
+
+        3. Используйте полученный `consent_id` в заголовке `X-Consent-Id`
+
+        4. Укажите свой банк в `X-Requesting-Bank`
+
+
+        ### Примечание:
+
+        - Без согласия межбанковый запрос вернет 403 с подсказкой, как получить
+        согласие
+
+        - Согласие имеет срок действия (обычно 90 дней)
+      operationId: get_accounts_accounts_get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: client_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID клиента (например team200-1). Обязателен для межбанковых
+              запросов
+            title: Client Id
+          description: ID клиента (например team200-1). Обязателен для межбанковых запросов
+          example: team200-1
+        - name: x-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID согласия (получите через POST /account-consents/request).
+              Обязателен для межбанковых запросов
+            title: X-Consent-Id
+          description: ID согласия (получите через POST /account-consents/request).
+            Обязателен для межбанковых запросов
+          example: consent-69e75facabba
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID вашей команды (от организаторов). Укажите для запроса данных из
+              другого банка
+            title: X-Requesting-Bank
+          description: ID вашей команды (от организаторов). Укажите для запроса данных из
+            другого банка
+          example: team200
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+    post:
+      tags:
+        - 2 Счета и балансы
+      summary: 5. Создать счет
+      description: |-
+        Создание нового счета
+
+        Поддерживаемые типы: checking, savings
+      operationId: create_account_accounts_post
+      security:
+        - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccountRequest"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /accounts/{account_id}:
+    get:
+      tags:
+        - 2 Счета и балансы
+      summary: 2. Получить детали счета
+      description: >-
+        Получение детальной информации о счете
+
+
+        **Требует:** Client token (для своих счетов) или Bank token с согласием
+        (межбанк)
+      operationId: get_account_accounts__account_id__get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ID счета
+            title: Account Id
+          description: ID счета
+          example: acc-1010
+        - name: x-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID согласия (получите через POST /account-consents/request).
+              Обязателен для межбанковых запросов
+            title: X-Consent-Id
+          description: ID согласия (получите через POST /account-consents/request).
+            Обязателен для межбанковых запросов
+          example: consent-69e75facabba
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID вашей команды (от организаторов). Укажите для запроса данных из
+              другого банка
+            title: X-Requesting-Bank
+          description: ID вашей команды (от организаторов). Укажите для запроса данных из
+            другого банка
+          example: team200
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /accounts/{account_id}/balances:
+    get:
+      tags:
+        - 2 Счета и балансы
+      summary: 3. Получить баланс счета
+      description: >-
+        Получение баланса счета
+
+
+        **Требует:** Client token (для своих счетов) или Bank token с согласием
+        (межбанк)
+      operationId: get_balances_accounts__account_id__balances_get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ID счета
+            title: Account Id
+          description: ID счета
+          example: acc-1010
+        - name: x-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID согласия (получите через POST /account-consents/request).
+              Обязателен для межбанковых запросов
+            title: X-Consent-Id
+          description: ID согласия (получите через POST /account-consents/request).
+            Обязателен для межбанковых запросов
+          example: consent-69e75facabba
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID вашей команды (от организаторов). Укажите для запроса данных из
+              другого банка
+            title: X-Requesting-Bank
+          description: ID вашей команды (от организаторов). Укажите для запроса данных из
+            другого банка
+          example: team200
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /accounts/{account_id}/transactions:
+    get:
+      tags:
+        - 2 Счета и балансы
+      summary: 4. Получить историю транзакций
+      description: >-
+        Получение списка транзакций по счету
+
+
+        **Пагинация:**
+
+        - `page` — номер страницы (по умолчанию: 1)
+
+        - `limit` — количество транзакций на странице (по умолчанию: 50, макс:
+        500)
+
+
+        **Примеры:**
+
+        - `GET /accounts/acc-1/transactions` — первые 50 транзакций
+
+        - `GET /accounts/acc-1/transactions?page=2&limit=100` — следующие 100
+        транзакций
+
+        - `GET /accounts/acc-1/transactions?limit=200` — первые 200 транзакций
+      operationId: get_transactions_accounts__account_id__transactions_get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ID счета
+            title: Account Id
+          description: ID счета
+          example: acc-1010
+        - name: from_booking_date_time
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: From Booking Date Time
+          example: 2025-01-01T00:00:00Z
+        - name: to_booking_date_time
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: To Booking Date Time
+          example: 2025-12-31T23:59:59Z
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            title: Page
+          example: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            maximum: 100
+            minimum: 1
+            default: 50
+            title: Limit
+          example: 50
+        - name: x-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID согласия (получите через POST /account-consents/request).
+              Обязателен для межбанковых запросов
+            title: X-Consent-Id
+          description: ID согласия (получите через POST /account-consents/request).
+            Обязателен для межбанковых запросов
+          example: consent-69e75facabba
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID вашей команды (от организаторов). Укажите для запроса данных из
+              другого банка
+            title: X-Requesting-Bank
+          description: ID вашей команды (от организаторов). Укажите для запроса данных из
+            другого банка
+          example: team200
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /accounts/{account_id}/status:
+    put:
+      tags:
+        - 2 Счета и балансы
+      summary: 6. Изменить статус счета
+      description: |-
+        Изменение статуса счета (закрытие)
+
+        Допустимые статусы: active, closed
+      operationId: update_account_status_accounts__account_id__status_put
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Account Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountStatusUpdate"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /accounts/{account_id}/close:
+    put:
+      tags:
+        - 2 Счета и балансы
+      summary: 7. Закрыть счет с остатком
+      description: |-
+        Закрытие счета с переводом остатка или дарением банку
+
+        Actions:
+        - transfer: перевести остаток на другой счет
+        - donate: подарить остаток банку (увеличить capital)
+      operationId: close_account_with_balance_accounts__account_id__close_put
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: account_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Account Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountCloseRequest"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /account-consents/request:
+    post:
+      tags:
+        - 1 Согласия на доступ к счетам
+      summary: 1. Создать согласие
+      description: >-
+        Создание согласия на доступ к счетам клиента
+
+
+        Согласия нужны для доступа к данным клиентов из других банков.
+
+        После создания согласия вы сможете запрашивать счета, балансы и
+        транзакции.
+
+
+        ### Пример использования:
+
+
+        ```bash
+
+        # 1. Получить токен банка, где лежат данные клиента
+
+        POST https://vbank.open.bankingapi.ru/auth/bank-token
+
+        ?client_id=team200&client_secret=YOUR_SECRET
+
+        → {"access_token": "eyJhbG..."}
+
+
+        # 2. Запросить согласие (авто-одобрение)
+
+        POST https://vbank.open.bankingapi.ru/account-consents/request
+
+        Headers:
+          Authorization: Bearer eyJhbG...
+          X-Requesting-Bank: team200
+        Body:
+
+        {
+          "client_id": "team200-1",
+          "permissions": ["ReadAccountsDetail", "ReadBalances"],
+          "reason": "Агрегация счетов для HackAPI",
+          "requesting_bank": "team200",
+          "requesting_bank_name": "Team 200 App"
+        }
+
+
+        → {"status": "approved", "consent_id": "consent-abc123",
+        "auto_approved": true}
+
+
+        # 3. Запросить данные
+
+        GET https://vbank.open.bankingapi.ru/accounts?client_id=team200-1
+
+        Headers:
+          Authorization: Bearer eyJhbG...
+          X-Requesting-Bank: team200
+          X-Consent-Id: consent-abc123
+
+        → 200 OK {"accounts": [...]}
+
+        ```
+
+
+        ### ⚠️ Частые ошибки:
+
+
+        1. **X-Requesting-Bank: team200-1** ❌ НЕПРАВИЛЬНО!  
+           Должно быть **team200** (ID команды, без суффикса клиента)
+
+        2. **Забыли X-Consent-Id** → получите 403 CONSENT_REQUIRED
+
+
+        3. **Используете client_token вместо bank_token** → 401 Unauthorized
+
+
+        ### Что происходит внутри:
+
+        1. Создаётся запрос согласия для клиента
+
+        2. Если банк настроен на авто-одобрение (VBank, ABank):
+           - Согласие одобряется автоматически
+           - Можно сразу запрашивать данные
+        3. Если банк требует ручное одобрение (SBank):
+           - Клиент увидит запрос в своём UI
+           - Должен подтвердить через кнопку "Подписать"
+           - После этого ваше приложение может запрашивать данные
+      operationId: request_consent_account_consents_request_post
+      parameters:
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID вашей команды (от организаторов). Укажите для создания согласия
+            title: X-Requesting-Bank
+          description: ID вашей команды (от организаторов). Укажите для создания согласия
+          example: team200
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsentRequestBody"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /account-consents/{consent_id}:
+    get:
+      tags:
+        - 1 Согласия на доступ к счетам
+      summary: 2. Получить согласие по ID
+      description: >-
+        Получение ресурса согласия
+
+
+        **Примечание:** Endpoint доступен без аутентификации для проверки
+        статуса согласия.
+      operationId: get_account_access_consents_consent_id_account_consents__consent_id__get
+      parameters:
+        - name: consent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ID согласия
+            title: Consent Id
+          description: ID согласия
+          example: consent-d8f0724a4775
+        - name: x-fapi-interaction-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Fapi-Interaction-Id
+          example: team200
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+    delete:
+      tags:
+        - 1 Согласия на доступ к счетам
+      summary: 3. Отозвать согласие
+      description: >-
+        Удаление ресурса согласия
+
+
+        **Примечание:** Endpoint доступен без обязательной аутентификации для
+        отзыва согласия.
+      operationId: delete_account_access_consents_consent_id_account_consents__consent_id__delete
+      parameters:
+        - name: consent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            description: ID согласия для отзыва
+            title: Consent Id
+          description: ID согласия для отзыва
+          example: consent-d8f0724a4775
+        - name: x-fapi-interaction-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Fapi-Interaction-Id
+          example: team200
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /payment-consents/request:
+    post:
+      tags:
+        - 3 Согласия на переводы
+      summary: 1. Создать запрос согласия на перевод
+      description: |-
+        ## 💳 Создание запроса на согласие для платежа
+
+        **OpenBanking Russia Payment Consents API**
+
+        ### Поддерживаемые типы:
+
+        #### 1. Single Use (одноразовый)
+
+        **С указанием получателя (платеж только на этот счет):**
+        ```json
+        {
+          "requesting_bank": "team200",
+          "client_id": "team200-1",
+          "consent_type": "single_use",
+          "amount": 5000.00,
+          "debtor_account": "40817810...",
+          "creditor_account": "40817820...",
+          "creditor_name": "Иван Иванов",
+          "reference": "Оплата услуг"
+        }
+        ```
+
+        **БЕЗ указания получателя (платеж любому, но только один раз):**
+        ```json
+        {
+          "requesting_bank": "team200",
+          "client_id": "team200-1",
+          "consent_type": "single_use",
+          "amount": 5000.00,
+          "debtor_account": "40817810...",
+          "reference": "Оплата услуг"
+        }
+        ```
+
+        #### 2. Multi Use (многоразовый)
+
+        **С ограничением по получателям:**
+        ```json
+        {
+          "requesting_bank": "team200",
+          "client_id": "team200-1",
+          "consent_type": "multi_use",
+          "debtor_account": "40817810...",
+          "max_uses": 10,
+          "max_amount_per_payment": 5000.00,
+          "max_total_amount": 50000.00,
+          "allowed_creditor_accounts": ["40817820...", "40817830..."],
+          "valid_until": "2025-12-31T23:59:59"
+        }
+        ```
+
+        **БЕЗ ограничения по получателям (любые счета в рамках лимитов):**
+        ```json
+        {
+          "requesting_bank": "team200",
+          "client_id": "team200-1",
+          "consent_type": "multi_use",
+          "debtor_account": "40817810...",
+          "max_uses": 10,
+          "max_amount_per_payment": 5000.00,
+          "max_total_amount": 50000.00,
+          "valid_until": "2025-12-31T23:59:59"
+        }
+        ```
+
+        #### 3. VRP (переменные платежи)
+
+        **Без ограничений по получателям (типичный случай для подписок):**
+        ```json
+        {
+          "requesting_bank": "team200",
+          "client_id": "team200-1",
+          "consent_type": "vrp",
+          "debtor_account": "40817810...",
+          "vrp_max_individual_amount": 1000.00,
+          "vrp_daily_limit": 3000.00,
+          "vrp_monthly_limit": 50000.00,
+          "valid_until": "2026-01-01T00:00:00"
+        }
+        ```
+      operationId: create_payment_consent_request_payment_consents_request_post
+      parameters:
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID вашей команды (от организаторов). Укажите для создания согласия
+              на переводы
+            title: X-Requesting-Bank
+          description: ID вашей команды (от организаторов). Укажите для создания согласия
+            на переводы
+          example: team200
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentConsentRequestData"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Response Create Payment Consent Request Payment Consents Request Post
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /payment-consents/{consent_id}:
+    get:
+      tags:
+        - 3 Согласия на переводы
+      summary: 2. Получить согласие по ID
+      description: |-
+        ## 📋 Получение согласия на платеж
+
+        Возвращает детали согласия со всеми лимитами и использованием
+      operationId: get_payment_consent_payment_consents__consent_id__get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: consent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Consent Id
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Response Get Payment Consent Payment Consents  Consent Id  Get
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+    delete:
+      tags:
+        - 3 Согласия на переводы
+      summary: 3. Отозвать согласие
+      description: "## 🗑️ Отзыв согласия на платеж"
+      operationId: revoke_payment_consent_payment_consents__consent_id__delete
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: consent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Consent Id
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /payments:
+    post:
+      tags:
+        - 4 Переводы
+      summary: 1. Создать платеж
+      description: >-
+        ## 💸 Создание платежа (разовый перевод)
+
+
+        ### 🔑 Аутентификация:
+
+        - **С bank_token**: Укажите параметр `client_id` (например: team200-1)
+
+        - **С client_token**: Параметр `client_id` не нужен
+
+
+        ### Два типа платежей:
+
+
+        #### 1️⃣ Внутрибанковский перевод (тот же банк)
+
+        ```json
+
+        {
+          "data": {
+            "initiation": {
+              "instructedAmount": {
+                "amount": "1000.00",
+                "currency": "RUB"
+              },
+              "debtorAccount": {
+                "schemeName": "RU.CBR.PAN",
+                "identification": "40817810099910004312"
+              },
+              "creditorAccount": {
+                "schemeName": "RU.CBR.PAN",
+                "identification": "40817810099910005423"
+              }
+            }
+          }
+        }
+
+        ```
+
+
+        #### 2️⃣ Межбанковский перевод
+
+        Добавьте в `creditorAccount`:
+
+        ```json
+
+        {
+          "creditorAccount": {
+            "identification": "40817810099910001234",
+            "bank_code": "abank"  // Код банка получателя
+          }
+        }
+
+        ```
+
+
+        ### Статусы платежа:
+
+        - `pending` — ожидает обработки
+
+        - `completed` — успешно выполнен
+
+        - `failed` — ошибка (недостаточно средств, счет не найден)
+
+
+        ### Проверка статуса:
+
+        ```bash
+
+        GET /payments/{payment_id}
+
+        ```
+
+
+        ### ⚠️ Важно:
+
+        - **bank_token**: укажите `client_id` в параметрах запроса (обязательно)
+
+        - Проверяйте баланс счета перед платежом: `GET
+        /accounts/{account_id}/balances`
+
+        - Счет списания (`debtorAccount`) должен принадлежать авторизованному
+        клиенту
+
+        - Для межбанковых переводов используйте правильный `bank_code`
+
+        - Коды банков: `vbank`, `abank`, `sbank`
+
+
+        ### Sandbox особенности:
+
+        - Межбанковые переводы выполняются мгновенно
+
+        - Комиссия не взимается
+
+        - Все валюты конвертируются по курсу 1:1 для упрощения
+      operationId: create_payment_payments_post
+      security:
+        - HTTPBearer: []
+        - HTTPBearer: []
+      parameters:
+        - name: client_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID клиента (обязательно для bank_token)
+            title: Client Id
+          description: ID клиента (обязательно для bank_token)
+          example: team200-1
+        - name: x-fapi-interaction-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: (Опционально) ID вашей транзакции для отслеживания
+            title: X-Fapi-Interaction-Id
+          description: (Опционально) ID вашей транзакции для отслеживания
+          example: team200-pay-001
+        - name: x-fapi-customer-ip-address
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: (Опционально) IP адрес клиента
+            title: X-Fapi-Customer-Ip-Address
+          description: (Опционально) IP адрес клиента
+          example: 192.168.1.100
+        - name: x-payment-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: (Опционально) ID согласия на перевод
+            title: X-Payment-Consent-Id
+          description: (Опционально) ID согласия на перевод
+          example: pcon-49ecbbe683b4
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: (Опционально) ID вашей команды для межбанковых переводов
+            title: X-Requesting-Bank
+          description: (Опционально) ID вашей команды для межбанковых переводов
+          example: team200
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRequest"
+      responses:
+        "201":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /payments/{payment_id}:
+    get:
+      tags:
+        - 4 Переводы
+      summary: 2. Получить статус платежа
+      description: Получение статуса платежа
+      operationId: get_payment_payments__payment_id__get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Payment Id
+        - name: x-fapi-interaction-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: (Опционально) ID вашей транзакции для отслеживания
+            title: X-Fapi-Interaction-Id
+          description: (Опционально) ID вашей транзакции для отслеживания
+          example: team200-pay-001
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /products:
+    get:
+      tags:
+        - 5 Каталог продуктов
+      summary: 1. Получить каталог продуктов
+      description: >-
+        ## 🧩 Каталог банковских продуктов
+
+
+        ### Получение списка всех доступных продуктов банка
+
+
+        #### Типы продуктов:
+
+        - `deposit` — вклады/депозиты
+
+        - `loan` — кредиты (потребительские, ипотека, авто)
+
+        - `card` — банковские карты (дебетовые, кредитные)
+
+        - `account` — расчетные счета
+
+
+        #### Фильтрация:
+
+        ```bash
+
+        GET /products?product_type=deposit
+
+        ```
+
+
+        ### Ответ содержит:
+
+        - `productId` — уникальный ID продукта
+
+        - `productType` — тип продукта
+
+        - `productName` — название
+
+        - `description` — описание
+
+        - `interestRate` — процентная ставка (для депозитов/кредитов)
+
+        - `minAmount` / `maxAmount` — лимиты по сумме
+
+        - `termMonths` — срок (в месяцах)
+
+
+        ### 🚀 Продуктовая воронка:
+
+
+        1. **Каталог** → `GET /products` (этот endpoint)
+
+        2. **Лид** → `POST /customer-leads` (оставить заявку на консультацию)
+
+        3. **Предложение** → `GET /product-offers` (получить персональное
+        предложение)
+
+        4. **Заявка** → `POST /product-application` (подать заявку на продукт)
+
+        5. **Договор** → `POST /product-agreements` (открыть продукт)
+
+
+        ### Примеры продуктов в sandbox:
+
+        - **Вклад "Надежный"**: 8.5% годовых, от 10,000₽
+
+        - **Потребительский кредит**: 12.9% годовых, до 3,000,000₽
+
+        - **Дебетовая карта "Свобода"**: с кэшбэком 2%
+
+
+        ### ⚠️ Обратите внимание:
+
+        - Каталог доступен без авторизации (публичная информация)
+
+        - Для подачи заявки требуется авторизация клиента
+
+        - Условия могут отличаться для разных банков
+      operationId: get_products_products_get
+      parameters:
+        - name: product_type
+          in: query
+          required: false
+          schema:
+            type: string
+            title: Product Type
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /products/{product_id}:
+    get:
+      tags:
+        - 5 Каталог продуктов
+      summary: 2. Получить детали продукта
+      description: |-
+        ## 📋 Детальная информация о продукте
+
+        Получение подробных условий конкретного банковского продукта.
+
+        ### Пример запроса:
+        ```bash
+        GET /products/prod-vb-deposit-001
+        ```
+
+        ### Когда использовать:
+        - После выбора продукта из каталога
+        - Перед созданием лида или заявки
+        - Для отображения деталей на странице продукта
+
+        ### Полезно для UI:
+        - Показать полные условия
+        - Вычислить предварительную сумму выплат по кредиту
+        - Сравнить с другими продуктами
+      operationId: get_product_products__product_id__get
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Product Id
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /product-agreements:
+    get:
+      tags:
+        - 7 Договоры с продуктами
+      summary: 1. Получить список договоров
+      description: |-
+        Получить список договоров клиента
+
+        Возвращает все активные договоры с продуктами (депозиты, кредиты, карты)
+
+        ### 🔑 Аутентификация:
+        - **bank_token**: укажите `client_id` в query параметре
+        - **client_token**: `client_id` определится автоматически
+
+        ### Для межбанковых запросов:
+        - Требуется заголовок `x-product-agreement-consent-id`
+        - Требуется заголовок `x-requesting-bank`
+        - Согласие должно иметь разрешение `read_product_agreements`
+      operationId: get_agreements_product_agreements_get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: client_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID клиента (обязательно для bank_token)
+            title: Client Id
+          description: ID клиента (обязательно для bank_token)
+          example: team200-1
+        - name: x-product-agreement-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Product-Agreement-Consent-Id
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Requesting-Bank
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+    post:
+      tags:
+        - 7 Договоры с продуктами
+      summary: 2. Открыть продукт
+      description: >-
+        Открыть договор с продуктом (депозит, кредит, карта)
+
+
+        - Депозит: создается счет, деньги списываются с основного счета
+
+        - Кредит: проверяется капитал банка, создается счет с кредитными
+        средствами
+
+        - Карта: создается счет с лимитом
+
+
+        ### 🎯 Скоринг для кредитов:
+
+        Максимальная **СУММАРНАЯ** сумма всех активных кредитов зависит от
+        сегмента клиента:
+
+        - **student** (студент): до 900,000₽ (30% от лимита)
+
+        - **pensioner** (пенсионер): до 1,200,000₽ (40%)
+
+        - **employee** (сотрудник): до 1,800,000₽ (60%)
+
+        - **entrepreneur** (ИП): до 2,400,000₽ (80%)
+
+        - **vip**: до 3,000,000₽ (100%)
+
+        - **business** (бизнес): до 3,000,000₽ (100%)
+
+
+        ⚠️ Проверяется сумма ВСЕХ активных кредитов клиента!
+
+
+        ### 🔑 Аутентификация:
+
+        - **bank_token**: укажите `client_id` в query параметре
+
+        - **client_token**: `client_id` определится автоматически
+
+
+        ### Для межбанковых запросов:
+
+        - Требуется заголовок `x-product-agreement-consent-id`
+
+        - Требуется заголовок `x-requesting-bank`
+
+        - Согласие должно иметь разрешение `open_product_agreements`
+
+        - Сумма не должна превышать `max_amount` согласия
+
+        - Тип продукта должен быть в списке `allowed_product_types`
+      operationId: create_agreement_product_agreements_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: client_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID клиента (обязательно для bank_token)
+            title: Client Id
+          description: ID клиента (обязательно для bank_token)
+          example: team200-1
+        - name: x-product-agreement-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Product-Agreement-Consent-Id
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Requesting-Bank
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductAgreementRequest"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /product-agreements/{agreement_id}:
+    get:
+      tags:
+        - 7 Договоры с продуктами
+      summary: 3. Получить детали договора
+      description: |-
+        Получить детали договора
+
+        ### 🔑 Аутентификация:
+        - **bank_token**: укажите `client_id` в query параметре
+        - **client_token**: `client_id` определится автоматически
+
+        ### Для межбанковых запросов:
+        - Требуется заголовок `x-product-agreement-consent-id`
+        - Требуется заголовок `x-requesting-bank`
+        - Согласие должно иметь разрешение `read_product_agreements`
+      operationId: get_agreement_product_agreements__agreement_id__get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Agreement Id
+        - name: client_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID клиента (обязательно для bank_token)
+            title: Client Id
+          description: ID клиента (обязательно для bank_token)
+          example: team200-1
+        - name: x-product-agreement-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Product-Agreement-Consent-Id
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Requesting-Bank
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+    delete:
+      tags:
+        - 7 Договоры с продуктами
+      summary: 4. Закрыть договор
+      description: |-
+        Закрыть договор
+
+        - Депозит: закрыть счет
+        - Кредит: погасить задолженность из указанного счета
+        - Карта: заблокировать
+
+        ### 🔑 Аутентификация:
+        - **bank_token**: укажите `client_id` в query параметре
+        - **client_token**: `client_id` определится автоматически
+
+        ### Для межбанковых запросов:
+        - Требуется заголовок `x-product-agreement-consent-id`
+        - Требуется заголовок `x-requesting-bank`
+        - Согласие должно иметь разрешение `close_product_agreements`
+      operationId: close_agreement_product_agreements__agreement_id__delete
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: agreement_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Agreement Id
+        - name: client_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID клиента (обязательно для bank_token)
+            title: Client Id
+          description: ID клиента (обязательно для bank_token)
+          example: team200-1
+        - name: x-product-agreement-consent-id
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Product-Agreement-Consent-Id
+        - name: x-requesting-bank
+          in: header
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            title: X-Requesting-Bank
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+                - $ref: "#/components/schemas/CloseAgreementRequest"
+                - type: "null"
+              title: Request
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /product-agreement-consents/request:
+    post:
+      tags:
+        - 6 Согласия на управление договорами
+      summary: 1. Создать запрос согласия на управление договорами
+      description: >-
+        ## 📋 Создание запроса на согласие для управления договорами
+
+
+        **OpenBanking Russia Products API Extension**
+
+
+        ### 🔑 Аутентификация:
+
+        - **bank_token** (type="team"): укажите `client_id` в query параметре
+
+        - **client_token** (type="client"): `client_id` определится
+        автоматически
+
+
+        ### Use Case:
+
+        Финансовый агрегатор или маркетплейс хочет:
+
+        - Показывать все продукты клиента из разных банков
+
+        - Открывать депозиты/карты от имени клиента
+
+        - Закрывать неактуальные договоры
+
+
+        ### Пример запроса:
+
+        ```json
+
+        {
+          "requesting_bank": "team200",
+          "client_id": "team200-1",
+          "read_product_agreements": true,
+          "open_product_agreements": true,
+          "close_product_agreements": false,
+          "allowed_product_types": ["deposit", "card"],
+          "max_amount": 1000000.00,
+          "valid_until": "2025-12-31T23:59:59",
+          "reason": "Финансовый агрегатор для управления продуктами"
+        }
+
+        ```
+
+
+        ### Разрешения:
+
+        - `read_product_agreements`: просмотр списка договоров (депозиты,
+        кредиты, карты)
+
+        - `open_product_agreements`: открытие новых продуктов
+
+        - `close_product_agreements`: закрытие существующих договоров
+
+
+        ### Ограничения:
+
+        - `allowed_product_types`: только указанные типы продуктов
+
+        - `max_amount`: макс сумма для открытия одного продукта
+      operationId: create_product_agreement_consent_request_product_agreement_consents_request_post
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: client_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: ID клиента (обязательно для bank_token)
+            title: Client Id
+          description: ID клиента (обязательно для bank_token)
+          example: team200-1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductAgreementConsentRequestData"
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Response Create Product Agreement Consent Request Product Agreement
+                  Consents Request Post
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /product-agreement-consents/{consent_id}:
+    get:
+      tags:
+        - 6 Согласия на управление договорами
+      summary: 2. Получить согласие по ID
+      description: "## 📋 Получение согласия на управление договорами"
+      operationId: get_product_agreement_consent_product_agreement_consents__consent_id__get
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: consent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Consent Id
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Response Get Product Agreement Consent Product Agreement
+                  Consents  Consent Id  Get
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+    delete:
+      tags:
+        - 6 Согласия на управление договорами
+      summary: 3. Отозвать согласие
+      description: "## 🗑️ Отзыв согласия на управление договорами"
+      operationId: revoke_product_agreement_consent_product_agreement_consents__consent_id__delete
+      security:
+        - HTTPBearer: []
+      parameters:
+        - name: consent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Consent Id
+      responses:
+        "204":
+          description: Successful Response
+        "422":
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+  /.well-known/jwks.json:
+    get:
+      tags:
+        - "Technical: Well-Known"
+      summary: Get Jwks
+      description: |-
+        JWKS endpoint - публичные ключи банка
+
+        OpenID Connect Discovery
+        RFC 7517 - JSON Web Key (JWK)
+
+        Используется другими банками для проверки JWT подписей
+        при межбанковских запросах.
+      operationId: get_jwks__well_known_jwks_json_get
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /:
+    get:
+      summary: Root
+      description: Root endpoint
+      operationId: root__get
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /health:
+    get:
+      summary: Health
+      description: Health check endpoint
+      operationId: health_health_get
+      responses:
+        "200":
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    AccountCloseRequest:
+      properties:
+        action:
+          type: string
+          title: Action
+        destination_account_id:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Destination Account Id
+      type: object
+      required:
+        - action
+      title: AccountCloseRequest
+      description: Запрос на закрытие счета с переводом остатка
+    AccountStatusUpdate:
+      properties:
+        status:
+          type: string
+          title: Status
+      type: object
+      required:
+        - status
+      title: AccountStatusUpdate
+      description: Обновление статуса счета
+    CloseAgreementRequest:
+      properties:
+        repayment_account_id:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Repayment Account Id
+        repayment_amount:
+          anyOf:
+            - type: number
+            - type: "null"
+          title: Repayment Amount
+      type: object
+      title: CloseAgreementRequest
+      description: Запрос на закрытие договора с погашением
+    ConsentData:
+      properties:
+        consentId:
+          type: string
+          title: Consentid
+        status:
+          type: string
+          title: Status
+        creationDateTime:
+          type: string
+          title: Creationdatetime
+        statusUpdateDateTime:
+          type: string
+          title: Statusupdatedatetime
+        permissions:
+          items:
+            type: string
+          type: array
+          title: Permissions
+        expirationDateTime:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Expirationdatetime
+      type: object
+      required:
+        - consentId
+        - status
+        - creationDateTime
+        - statusUpdateDateTime
+        - permissions
+      title: ConsentData
+      description: Данные согласия в ответе
+    ConsentRequestBody:
+      properties:
+        client_id:
+          type: string
+          title: Client Id
+          description: Person ID клиента
+          example: team200-1
+        permissions:
+          items:
+            type: string
+          type: array
+          title: Permissions
+          description: Список разрешений
+          example:
+            - ReadAccountsDetail
+            - ReadBalances
+            - ReadTransactionsDetail
+        reason:
+          type: string
+          title: Reason
+          description: Причина запроса
+          default: ""
+          example: Агрегация счетов для мультибанк-приложения
+        requesting_bank:
+          type: string
+          title: Requesting Bank
+          description: ID вашей команды (БЕЗ суффикса!)
+          default: test_bank
+          example: team200
+        requesting_bank_name:
+          type: string
+          title: Requesting Bank Name
+          description: Название приложения
+          default: Test Bank
+          example: Team 200 App
+      type: object
+      required:
+        - client_id
+        - permissions
+      title: ConsentRequestBody
+      description: Body для запроса согласия
+    ConsentResponse:
+      properties:
+        data:
+          $ref: "#/components/schemas/ConsentData"
+        links:
+          type: object
+          title: Links
+        meta:
+          anyOf:
+            - type: object
+            - type: "null"
+          title: Meta
+          default: {}
+      type: object
+      required:
+        - data
+        - links
+      title: ConsentResponse
+      description: Ответ с согласием
+    CreateAccountRequest:
+      properties:
+        account_type:
+          type: string
+          title: Account Type
+        initial_balance:
+          type: number
+          title: Initial Balance
+          default: 0
+      type: object
+      required:
+        - account_type
+      title: CreateAccountRequest
+      description: Запрос на создание нового счета
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: "#/components/schemas/ValidationError"
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    PaymentConsentRequestData:
+      properties:
+        requesting_bank:
+          type: string
+          title: Requesting Bank
+          description: Код банка-инициатора
+        client_id:
+          type: string
+          title: Client Id
+          description: ID клиента
+        consent_type:
+          $ref: "#/components/schemas/PaymentConsentType"
+          description: Тип согласия
+          default: single_use
+        amount:
+          anyOf:
+            - type: number
+            - type: string
+            - type: "null"
+          title: Amount
+          description: Сумма платежа
+        currency:
+          type: string
+          title: Currency
+          description: Валюта
+          default: RUB
+        debtor_account:
+          type: string
+          title: Debtor Account
+          description: Счет списания
+        creditor_account:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Creditor Account
+          description: Счет получателя (для single_use)
+        creditor_name:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Creditor Name
+          description: Имя получателя
+        reference:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Reference
+          description: Назначение платежа
+        max_uses:
+          anyOf:
+            - type: integer
+            - type: "null"
+          title: Max Uses
+          description: Макс количество использований
+        max_amount_per_payment:
+          anyOf:
+            - type: number
+            - type: string
+            - type: "null"
+          title: Max Amount Per Payment
+          description: Макс сумма одного платежа
+        max_total_amount:
+          anyOf:
+            - type: number
+            - type: string
+            - type: "null"
+          title: Max Total Amount
+          description: Макс общая сумма
+        allowed_creditor_accounts:
+          anyOf:
+            - items:
+                type: string
+              type: array
+            - type: "null"
+          title: Allowed Creditor Accounts
+          description: Разрешенные счета
+        vrp_max_individual_amount:
+          anyOf:
+            - type: number
+            - type: string
+            - type: "null"
+          title: Vrp Max Individual Amount
+          description: "VRP: макс сумма платежа"
+        vrp_daily_limit:
+          anyOf:
+            - type: number
+            - type: string
+            - type: "null"
+          title: Vrp Daily Limit
+          description: "VRP: дневной лимит"
+        vrp_monthly_limit:
+          anyOf:
+            - type: number
+            - type: string
+            - type: "null"
+          title: Vrp Monthly Limit
+          description: "VRP: месячный лимит"
+        valid_from:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+          title: Valid From
+          description: Действует с
+        valid_until:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+          title: Valid Until
+          description: Действует до
+        reason:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Reason
+          description: Причина запроса
+      type: object
+      required:
+        - requesting_bank
+        - client_id
+        - debtor_account
+      title: PaymentConsentRequestData
+      description: Запрос на создание согласия
+    PaymentConsentType:
+      type: string
+      enum:
+        - single_use
+        - multi_use
+        - vrp
+      title: PaymentConsentType
+      description: Типы согласий на платежи
+    PaymentData:
+      properties:
+        paymentId:
+          type: string
+          title: Paymentid
+        status:
+          type: string
+          title: Status
+        creationDateTime:
+          type: string
+          title: Creationdatetime
+        statusUpdateDateTime:
+          type: string
+          title: Statusupdatedatetime
+      type: object
+      required:
+        - paymentId
+        - status
+        - creationDateTime
+        - statusUpdateDateTime
+      title: PaymentData
+      description: Данные платежа в ответе
+    PaymentRequest:
+      properties:
+        data:
+          type: object
+          title: Data
+          description: Содержит initiation
+        risk:
+          anyOf:
+            - type: object
+            - type: "null"
+          title: Risk
+          default: {}
+      type: object
+      required:
+        - data
+      title: PaymentRequest
+      description: Запрос создания платежа
+    PaymentResponse:
+      properties:
+        data:
+          $ref: "#/components/schemas/PaymentData"
+        links:
+          type: object
+          title: Links
+        meta:
+          anyOf:
+            - type: object
+            - type: "null"
+          title: Meta
+          default: {}
+      type: object
+      required:
+        - data
+        - links
+      title: PaymentResponse
+      description: Ответ с платежом
+    ProductAgreementConsentRequestData:
+      properties:
+        requesting_bank:
+          type: string
+          title: Requesting Bank
+          description: Код банка-инициатора
+        client_id:
+          type: string
+          title: Client Id
+          description: ID клиента
+        read_product_agreements:
+          type: boolean
+          title: Read Product Agreements
+          description: Читать список договоров
+          default: false
+        open_product_agreements:
+          type: boolean
+          title: Open Product Agreements
+          description: Открывать новые договоры
+          default: false
+        close_product_agreements:
+          type: boolean
+          title: Close Product Agreements
+          description: Закрывать договоры
+          default: false
+        allowed_product_types:
+          anyOf:
+            - items:
+                type: string
+              type: array
+            - type: "null"
+          title: Allowed Product Types
+          description: "Разрешенные типы продуктов: deposit, card, credit"
+        max_amount:
+          anyOf:
+            - type: number
+            - type: string
+            - type: "null"
+          title: Max Amount
+          description: Макс сумма открытия продукта
+        valid_until:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
+          title: Valid Until
+          description: Действует до
+        reason:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Reason
+          description: Причина запроса
+      type: object
+      required:
+        - requesting_bank
+        - client_id
+      title: ProductAgreementConsentRequestData
+      description: Запрос на создание согласия для управления договорами
+    ProductAgreementRequest:
+      properties:
+        product_id:
+          type: string
+          title: Product Id
+          description: ID продукта из каталога
+          example: prod-vbank-deposit-001
+        amount:
+          type: number
+          title: Amount
+          description: Сумма продукта (депозита, кредита, лимита карты)
+          example: 50000
+        term_months:
+          anyOf:
+            - type: integer
+            - type: "null"
+          title: Term Months
+          description: Срок в месяцах (для депозитов и кредитов)
+          example: 12
+        source_account_id:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Source Account Id
+          description: Номер счета для списания средств (обязательно для депозитов и карт,
+            не нужно для кредитов)
+          example: "40817810200010318134"
+      type: object
+      required:
+        - product_id
+        - amount
+      title: ProductAgreementRequest
+      description: Запрос на открытие продукта
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
+tags:
+  - name: 0 Аутентификация вызывающей системы
+    description: Получите токен для работы с API
+  - name: 1 Согласия на доступ к счетам
+    description: Создание и управление согласиями для доступа к данным клиентов
+  - name: 2 Счета и балансы
+    description: Просмотр счетов, балансов и истории транзакций
+  - name: 3 Согласия на переводы
+    description: Согласия для совершения платежей от имени клиента
+  - name: 4 Переводы
+    description: Создание платежей и проверка их статуса
+  - name: 5 Каталог продуктов
+    description: Депозиты, кредиты, карты — каталог банковских продуктов
+  - name: 6 Согласия на управление договорами
+    description: Согласия на открытие/закрытие продуктов от имени клиента
+  - name: 7 Договоры с продуктами
+    description: Открытие и закрытие депозитов, кредитов и карт
+  - name: "Technical: Well-Known"
+    description: JWKS — публичные ключи для проверки JWT
