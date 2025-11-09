@@ -1,8 +1,5 @@
 # GOSTbusters-ASTF
 
-[![OWASP Incubator](https://img.shields.io/badge/owasp-incubator-blue.svg)](https://owasp.org/www-project-api-security-testing-framework/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
-
 **GOSTbusters-ASTF** - Automated Security Testing Framework for API security testing with GOST gateway support. A comprehensive framework for detecting API security vulnerabilities based on the OWASP API Security Top 10.
 
 ## 🚀 Overview
