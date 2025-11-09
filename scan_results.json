@@ -1,7 +1,7 @@
 {
   "targetUrl" : "https://vbank.open.bankingapi.ru/",
-  "scanStartTime" : "2025-11-09T21:09:14.1478233",
-  "scanEndTime" : "2025-11-09T21:12:16.295243",
+  "scanStartTime" : "2025-11-09T21:18:42.8396679",
+  "scanEndTime" : "2025-11-09T21:21:44.9434863",
   "summary" : {
     "totalFindings" : 18,
     "bySeverity" : {
@@ -13,7 +13,7 @@
     }
   },
   "findings" : [ {
-    "id" : "b6afaf41-00e6-4724-a84c-be42218694f1",
+    "id" : "5765110b-0d8d-45a6-9028-2753405e3778",
     "title" : "Authentication Endpoint Requires Manual Review",
     "description" : "Authentication endpoints should be carefully reviewed for weak credentials, account lockout mechanisms, and proper token validation.",
     "severity" : "MEDIUM",
@@ -21,37 +21,37 @@
     "endpoint" : "POST /auth/bank-token",
     "remediation" : "Implement strong password policies, account lockout after failed attempts, and proper token generation using industry standard algorithms."
   }, {
-    "id" : "IDOR-01",
-    "title" : "Insecure Direct Object Reference",
-    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
+    "id" : "INSECURE-DES-01",
+    "title" : "Possible Insecure Deserialization",
+    "description" : "API accepts potentially dangerous payload without validation",
     "severity" : "HIGH",
-    "testCaseId" : "IDOR",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/close",
-    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
+    "testCaseId" : "INSECURE-DESERIALIZATION",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/{account_id}/close",
+    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
+  }, {
+    "id" : "INSECURE-DES-01",
+    "title" : "Possible Insecure Deserialization",
+    "description" : "API accepts potentially dangerous payload without validation",
+    "severity" : "HIGH",
+    "testCaseId" : "INSECURE-DESERIALIZATION",
+    "endpoint" : "https://vbank.open.bankingapi.ru/payment-consents/request",
+    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
   }, {
     "id" : "FLA-01",
     "title" : "Function Level Authorization Bypass",
     "description" : "Пользователь может выполнить DELETE на эндпоинте, где у него только GET права",
     "severity" : "HIGH",
     "testCaseId" : "FUNCTION-LEVEL-AUTH",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/transactions",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999",
     "remediation" : "Проверьте права доступа к методам API на уровне авторизации"
   }, {
-    "id" : "INSECURE-DES-01",
-    "title" : "Possible Insecure Deserialization",
-    "description" : "API accepts potentially dangerous payload without validation",
+    "id" : "IDOR-01",
+    "title" : "Insecure Direct Object Reference",
+    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
     "severity" : "HIGH",
-    "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/payments",
-    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
-  }, {
-    "id" : "INSECURE-DES-01",
-    "title" : "Possible Insecure Deserialization",
-    "description" : "API accepts potentially dangerous payload without validation",
-    "severity" : "HIGH",
-    "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/auth/bank-token",
-    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
+    "testCaseId" : "IDOR",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999",
+    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
   }, {
     "id" : "FLA-01",
     "title" : "Function Level Authorization Bypass",
@@ -74,8 +74,56 @@
     "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
     "severity" : "HIGH",
     "testCaseId" : "IDOR",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/status",
+    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
+  }, {
+    "id" : "IDOR-01",
+    "title" : "Insecure Direct Object Reference",
+    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
+    "severity" : "HIGH",
+    "testCaseId" : "IDOR",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/transactions",
+    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
+  }, {
+    "id" : "IDOR-01",
+    "title" : "Insecure Direct Object Reference",
+    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
+    "severity" : "HIGH",
+    "testCaseId" : "IDOR",
     "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/balances",
     "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
+  }, {
+    "id" : "INSECURE-DES-01",
+    "title" : "Possible Insecure Deserialization",
+    "description" : "API accepts potentially dangerous payload without validation",
+    "severity" : "HIGH",
+    "testCaseId" : "INSECURE-DESERIALIZATION",
+    "endpoint" : "https://vbank.open.bankingapi.ru/auth/bank-token",
+    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
+  }, {
+    "id" : "INSECURE-DES-01",
+    "title" : "Possible Insecure Deserialization",
+    "description" : "API accepts potentially dangerous payload without validation",
+    "severity" : "HIGH",
+    "testCaseId" : "INSECURE-DESERIALIZATION",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/{account_id}/status",
+    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
+  }, {
+    "id" : "INSECURE-DES-01",
+    "title" : "Possible Insecure Deserialization",
+    "description" : "API accepts potentially dangerous payload without validation",
+    "severity" : "HIGH",
+    "testCaseId" : "INSECURE-DESERIALIZATION",
+    "endpoint" : "https://vbank.open.bankingapi.ru/product-agreements",
+    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
+  }, {
+    "id" : "FLA-01",
+    "title" : "Function Level Authorization Bypass",
+    "description" : "Пользователь может выполнить DELETE на эндпоинте, где у него только GET права",
+    "severity" : "HIGH",
+    "testCaseId" : "FUNCTION-LEVEL-AUTH",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/transactions",
+    "remediation" : "Проверьте права доступа к методам API на уровне авторизации"
   }, {
     "id" : "INSECURE-DES-01",
     "title" : "Possible Insecure Deserialization",
@@ -90,7 +138,7 @@
     "description" : "API accepts potentially dangerous payload without validation",
     "severity" : "HIGH",
     "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/payment-consents/request",
+    "endpoint" : "https://vbank.open.bankingapi.ru/payments",
     "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
   }, {
     "id" : "IDOR-01",
@@ -98,55 +146,7 @@
     "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
     "severity" : "HIGH",
     "testCaseId" : "IDOR",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/transactions",
-    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
-  }, {
-    "id" : "INSECURE-DES-01",
-    "title" : "Possible Insecure Deserialization",
-    "description" : "API accepts potentially dangerous payload without validation",
-    "severity" : "HIGH",
-    "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/product-agreements",
-    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
-  }, {
-    "id" : "IDOR-01",
-    "title" : "Insecure Direct Object Reference",
-    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
-    "severity" : "HIGH",
-    "testCaseId" : "IDOR",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999",
-    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
-  }, {
-    "id" : "FLA-01",
-    "title" : "Function Level Authorization Bypass",
-    "description" : "Пользователь может выполнить DELETE на эндпоинте, где у него только GET права",
-    "severity" : "HIGH",
-    "testCaseId" : "FUNCTION-LEVEL-AUTH",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999",
-    "remediation" : "Проверьте права доступа к методам API на уровне авторизации"
-  }, {
-    "id" : "INSECURE-DES-01",
-    "title" : "Possible Insecure Deserialization",
-    "description" : "API accepts potentially dangerous payload without validation",
-    "severity" : "HIGH",
-    "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/{account_id}/close",
-    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
-  }, {
-    "id" : "INSECURE-DES-01",
-    "title" : "Possible Insecure Deserialization",
-    "description" : "API accepts potentially dangerous payload without validation",
-    "severity" : "HIGH",
-    "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/{account_id}/status",
-    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
-  }, {
-    "id" : "IDOR-01",
-    "title" : "Insecure Direct Object Reference",
-    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
-    "severity" : "HIGH",
-    "testCaseId" : "IDOR",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/status",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/close",
     "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
   }, {
     "id" : "RL-BYPASS-03",
