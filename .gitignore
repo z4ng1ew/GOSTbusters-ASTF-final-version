@@ -1,4 +1,43 @@
-/Gemfile
-/Gemfile.lock
-/favicon.ico
-_site/
+# IDE и редакторы
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Сборка и зависимости
+target/
+dependency-reduced-pom.xml
+*.jar
+*.war
+*.ear
+
+# Логи и отчёты
+*.log
+scan_results.*
+report.*
+
+# Конфигурация и чувствительные данные
+*.yaml
+*.yml
+*.json
+!vbank-openapi.yaml
+!vbank-openapi.json
+!pom.xml
+!MANIFEST.MF
+
+# Окружение и переменные
+.env
+.env.local
+
+# Временные и системные файлы
+Thumbs.db
+ehthumbs.db
+*.tmp
+*.bak
+
+# Папка плагинов (если она будет генерироваться)
+plugins/
+
+# CI/CD артефакты
+.github/workflows/scan.yml
