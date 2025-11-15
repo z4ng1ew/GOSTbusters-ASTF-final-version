@@ -112,10 +112,28 @@ java -jar target\api-security-testing-framework-1.0-SNAPSHOT.jar scan --target h
 
 
 
+py get_bank_token.py https://vbank.open.bankingapi.ru team179 JJqqH33ePjnfCMlyHFfz9Px09SMWvzhO   
 
 py get_bank_token.py https://abank.open.bankingapi.ru team179 JJqqH33ePjnfCMlyHFfz9Px09SMWvzhO  
 
+py get_sbank_consent_token.py
 
- py get_bank_token.py https://vbank.open.bankingapi.ru team179 JJqqH33ePjnfCMlyHFfz9Px09SMWvzhO    
 
- py get_sbank_consent_token.py
+
+
+
+
+
+Для VBank:
+.\run_scan_auto.bat https://vbank.open.bankingapi.ru team179 JJqqH33ePjnfCMlyHFfz9Px09SMWvzhO vbank_scan
+
+
+
+
+Для ABank:
+.\run_scan_auto.bat https://abank.open.bankingapi.ru team179 JJqqH33ePjnfCMlyHFfz9Px09SMWvzhO abank_scan
+
+
+
+Для SBank (с автоматическим получением и ожиданием согласия):
+.\run_scan_auto.bat https://sbank.open.bankingapi.ru team179 JJqqH33ePjnfCMlyHFfz9Px09SMWvzhO sbank_scan_with_consent

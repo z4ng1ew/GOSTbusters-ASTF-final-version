@@ -20,26 +20,26 @@ def get_bank_token(bank_url):
     }
 
     try:
-        print(f"🔄 Запрашиваю токен у: {token_url}")
+        print(f"[INFO] Запрашиваю токен у: {token_url}")
         response = requests.post(token_url, params=params, timeout=30)
 
         if response.status_code == 200:
             token_data = response.json()
             access_token = token_data.get('access_token')
             if access_token:
-                print("✅ Токен SBank успешно получен!")
+                print("[SUCCESS] Токен SBank успешно получен!")
                 return access_token
             else:
-                print("❌ Ошибка: 'access_token' не найден в ответе.")
+                print("[ERROR] 'access_token' не найден в ответе.")
                 print(f"   Полный ответ: {token_data}")
                 return None
         else:
-            print(f"❌ Ошибка HTTP при получении токена: {response.status_code}")
+            print(f"[ERROR] Ошибка HTTP при получении токена: {response.status_code}")
             print(f"   Тело ответа: {response.text}")
             return None
 
     except requests.exceptions.RequestException as e:
-        print(f"❌ Ошибка сети при запросе токена: {e}")
+        print(f"[ERROR] Ошибка сети при запросе токена: {e}")
         return None
 
 def request_consent(bank_token, bank_url):
@@ -68,7 +68,7 @@ def request_consent(bank_token, bank_url):
     }
 
     try:
-        print(f"\n🔄 Отправляю запрос на согласие: {consent_url}")
+        print(f"\n[INFO] Отправляю запрос на согласие: {consent_url}")
         response = requests.post(consent_url, headers=headers, json=consent_body, timeout=30)
 
         if response.status_code == 200:
@@ -79,11 +79,11 @@ def request_consent(bank_token, bank_url):
             auto_approved = consent_response.get('auto_approved', False)
 
             if request_id:
-                print(f"✅ Запрос на согласие отправлен! (ID: {request_id})")
+                print(f"[SUCCESS] Запрос на согласие отправлен! (ID: {request_id})")
                 print(f"   Статус: {status}")
                 print(f"   Авто-одобрение: {auto_approved}")
                 if not auto_approved:
-                     print("\n--- 🔁 РУЧНОЕ ОДОБРЕНИЕ НЕОБХОДИМО ---")
+                     print("\n[MANUAL ACTION REQUIRED] ---")
                      print(f"   1. Перейдите в UI SBank: {bank_url}/client/consents.html")
                      print(f"   2. Войдите как клиент '{CLIENT_ID_USER}' (если требуется).")
                      print(f"   3. Найдите запрос согласия и нажмите 'Подписать'.")
@@ -91,16 +91,16 @@ def request_consent(bank_token, bank_url):
                      print("----------------------------------------\n")
                 return request_id
             else:
-                print("❌ Ошибка: 'request_id' не найден в ответе на запрос согласия.")
+                print("[ERROR] 'request_id' не найден в ответе на запрос согласия.")
                 print(f"   Полный ответ: {consent_response}")
                 return None
         else:
-            print(f"❌ Ошибка HTTP при запросе согласия: {response.status_code}")
+            print(f"[ERROR] Ошибка HTTP при запросе согласия: {response.status_code}")
             print(f"   Тело ответа: {response.text}")
             return None
 
     except requests.exceptions.RequestException as e:
-        print(f"❌ Ошибка сети при запросе согласия: {e}")
+        print(f"[ERROR] Ошибка сети при запросе согласия: {e}")
         return None
 
 def check_consent_status(bank_token, request_id, bank_url):
@@ -112,7 +112,7 @@ def check_consent_status(bank_token, request_id, bank_url):
         "X-Fapi-Interaction-Id": CLIENT_ID_TEAM # Опциональный заголовок, можно использовать ID команды
     }
 
-    print(f"\n🔄 Проверяю статус согласия (ID: {request_id})...")
+    print(f"\n[INFO] Проверяю статус согласия (ID: {request_id})...")
 
     try:
         response = requests.get(consent_status_url, headers=headers, timeout=30)
@@ -127,10 +127,10 @@ def check_consent_status(bank_token, request_id, bank_url):
                 print(f"   ID согласия (consent_id): {consent_id}")
 
             if status.lower() == 'authorized': # Статус "Authorized" означает активное согласие
-                print("✅ Согласие активно!")
+                print("[SUCCESS] Согласие активно!")
                 return consent_id
             elif status.lower() in ['rejected', 'revoked', 'expired']:
-                 print(f"❌ Согласие в статусе '{status}'. Запросите новое.")
+                 print(f"[ERROR] Согласие в статусе '{status}'. Запросите новое.")
                  return None
             else:
                 # Статус pending или awaiting_authorisation
@@ -138,34 +138,34 @@ def check_consent_status(bank_token, request_id, bank_url):
                 return None # Возвращаем None, если не активно
 
         else:
-            print(f"❌ Ошибка HTTP при проверке статуса: {response.status_code}")
+            print(f"[ERROR] Ошибка HTTP при проверке статуса: {response.status_code}")
             print(f"   Тело ответа: {response.text}")
             return None
 
     except requests.exceptions.RequestException as e:
-        print(f"❌ Ошибка сети при проверке статуса: {e}")
+        print(f"[ERROR] Ошибка сети при проверке статуса: {e}")
         return None
 
 def main():
     if len(sys.argv) != 2:
-        print("❌ Использование: python get_sbank_consent.py <bank_base_url>")
+        print("[USAGE] python get_sbank_consent.py <bank_base_url>")
         print("   Пример: python get_sbank_consent.py https://sbank.open.bankingapi.ru")
         sys.exit(1)
 
     bank_url = sys.argv[1]
 
-    print(f"--- 🏦 Получение согласия для {bank_url} ---")
+    print(f"[INFO] --- Получение согласия для {bank_url} ---")
 
     # 1. Получить токен SBank
     bank_token = get_bank_token(bank_url)
     if not bank_token:
-        print("❌ Не удалось получить токен. Завершение.")
+        print("[ERROR] Не удалось получить токен. Завершение.")
         sys.exit(1)
 
     # 2. Запросить согласие
     consent_request_id = request_consent(bank_token, bank_url)
     if not consent_request_id:
-        print("❌ Не удалось отправить запрос на согласие. Завершение.")
+        print("[ERROR] Не удалось отправить запрос на согласие. Завершение.")
         sys.exit(1)
 
     # 3. Цикл ожидания активации согласия
@@ -174,7 +174,7 @@ def main():
 
     consent_id = None
     for attempt in range(1, max_attempts + 1):
-        print(f"\n--- Попытка {attempt}/{max_attempts} ---")
+        print(f"\n[ATTEMPT] {attempt}/{max_attempts}")
         consent_id = check_consent_status(bank_token, consent_request_id, bank_url)
         if consent_id:
             break # Согласие активно, выходим из цикла
@@ -182,20 +182,20 @@ def main():
             print(f"   Жду {delay} секунд перед следующей проверкой...")
             time.sleep(delay)
         else:
-            print(f"\n⏰ Время ожидания истекло. Согласие не было активировано за {max_attempts * delay} секунд.")
+            print(f"\n[TIMEOUT] Время ожидания истекло. Согласие не было активировано за {max_attempts * delay} секунд.")
             print("   Убедитесь, что вы подтвердили согласие в UI SBank.")
 
     if consent_id:
-        print("\n--- ✅ ВСЁ ГОТОВО ---")
+        print("\n[DONE] --- ВСЁ ГОТОВО ---")
         print(f"Получен consent_id для {bank_url}: {consent_id}")
         print(f"Токен банка: {bank_token}")
         print(f"X-Requesting-Bank: {CLIENT_ID_TEAM}")
         print(f"Client ID (для запросов): {CLIENT_ID_USER}")
-        print("\n--- Завершено ---")
+        print("\n[DONE] --- Завершено ---")
         # Выводим только consent_id для подстановки в другую команду
         print(consent_id, end='')
     else:
-        print("\n❌ Не удалось получить активное согласие. Завершение.")
+        print("\n[ERROR] Не удалось получить активное согласие. Завершение.")
         sys.exit(1)
 
 if __name__ == "__main__":
