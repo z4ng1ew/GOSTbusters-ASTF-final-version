@@ -91,67 +91,75 @@ public class BrokenAuthenticationTestCase implements TestCase {
         return findings;
     }
 
-    /**
-     * ✅ ИСПРАВЛЕНО: Проверяем реальный URL и статус-код
-     * ✅ ИГНОРИРУЕМ: 401/403/404 — это нормальная защита аутентификации
-     */
-    private List<Finding> testMissingAuthentication(EndpointInfo endpoint, HttpClient httpClient) {
-        List<Finding> findings = new ArrayList<>();
+/**
+ * ✅ ИСПРАВЛЕНО: Проверяем реальный URL и статус-код
+ * ✅ ИГНОРИРУЕМ: 401/403/404 — это нормальная защита аутентификации
+ * ✅ ИСКЛЮЧАЕМ: публичные эндпоинты (/.well-known/jwks.json, /, /health)
+ */
+private List<Finding> testMissingAuthentication(EndpointInfo endpoint, HttpClient httpClient) {
+    List<Finding> findings = new ArrayList<>();
 
-        // Согласно OpenAPI все эндпоинты требуют аутентификации
-        // Поэтому проверяем ВСЕ кроме /auth/bank-token
-
-        String realUrl = endpoint.getFullUrl(); // ✅ Реальный URL
-
-        try {
-            String method = endpoint.getMethod().toUpperCase();
-            int statusCode;
-
-            // ✅ Выполняем запрос БЕЗ авторизации
-            switch (method) {
-                case "GET":
-                    statusCode = httpClient.getStatusCode(realUrl, Map.of());
-                    break;
-                case "POST":
-                    statusCode = httpClient.postStatusCode(realUrl, Map.of(), "application/json", "{}");
-                    break;
-                case "PUT":
-                    statusCode = httpClient.putStatusCode(realUrl, Map.of(), "application/json", "{}");
-                    break;
-                case "DELETE":
-                    statusCode = httpClient.deleteStatusCode(realUrl, Map.of());
-                    break;
-                default:
-                    return findings; // Неизвестный метод
-            }
-
-            // ✅ 2xx = уязвимость (доступ без аутентификации)
-            if (statusCode >= 200 && statusCode < 300) {
-                Finding finding = new Finding(
-                        UUID.randomUUID().toString(),
-                        "Missing Authentication Controls",
-                        "The API endpoint appears to be accessible without proper authentication.",
-                        Severity.HIGH,
-                        getId(),
-                        realUrl,
-                        "Implement consistent authentication checks across all API endpoints that require them."
-                );
-                findings.add(finding);
-                logger.warn("FOUND MISSING AUTH: {} {} returns {}", method, realUrl, statusCode);
-            } 
-            // ✅ 401/403/404 = OK (аутентификация работает)
-            else if (statusCode == 401 || statusCode == 403 || statusCode == 404) {
-                logger.debug("OK: {} {} returns {} (auth protected)", method, realUrl, statusCode);
-            }
-            // ✅ Другие статусы (500, 429 и т.д.) — игнорируем
-            else {
-                logger.debug("IGNORE: {} {} returns {} (non-auth response)", method, realUrl, statusCode);
-            }
-
-        } catch (Exception e) {
-            logger.debug("Error testing missing authentication on {}: {}", realUrl, e.getMessage());
-        }
-
+    // ✅ ИСКЛЮЧАЕМ публичные эндпоинты, которые ДОЛЖНЫ быть без аутентификации
+    String path = endpoint.getPath().toLowerCase();
+    if (path.equals("/") ||
+        path.equals("/health") ||
+        path.equals("/.well-known/jwks.json") ||
+        path.startsWith("/openapi") ||
+        path.startsWith("/swagger")) {
+        logger.debug("Skipping public endpoint: {}", path);
         return findings;
     }
+
+    String realUrl = endpoint.getFullUrl();
+
+    try {
+        String method = endpoint.getMethod().toUpperCase();
+        int statusCode;
+
+        switch (method) {
+            case "GET":
+                statusCode = httpClient.getStatusCode(realUrl, Map.of());
+                break;
+            case "POST":
+                statusCode = httpClient.postStatusCode(realUrl, Map.of(), "application/json", "{}");
+                break;
+            case "PUT":
+                statusCode = httpClient.putStatusCode(realUrl, Map.of(), "application/json", "{}");
+                break;
+            case "DELETE":
+                statusCode = httpClient.deleteStatusCode(realUrl, Map.of());
+                break;
+            default:
+                return findings;
+        }
+
+        // ✅ 2xx = уязвимость (доступ без аутентификации)
+        if (statusCode >= 200 && statusCode < 300) {
+            Finding finding = new Finding(
+                    UUID.randomUUID().toString(),
+                    "Missing Authentication Controls",
+                    "The API endpoint appears to be accessible without proper authentication.",
+                    Severity.HIGH,
+                    getId(),
+                    realUrl,
+                    "Implement consistent authentication checks across all API endpoints that require them."
+            );
+            findings.add(finding);
+            logger.warn("FOUND MISSING AUTH: {} {} returns {}", method, realUrl, statusCode);
+        } 
+        // ✅ 401/403/404 = OK
+        else if (statusCode == 401 || statusCode == 403 || statusCode == 404) {
+            logger.debug("OK: {} {} returns {} (auth protected)", method, realUrl, statusCode);
+        }
+        // ✅ Другие статусы (500, 429 и т.д.) — игнорируем
+        else {
+            logger.debug("IGNORE: {} {} returns {} (non-auth response)", method, realUrl, statusCode);
+        }
+
+    } catch (Exception e) {
+        logger.debug("Error testing missing authentication on {}: {}", realUrl, e.getMessage());
+    }
+
+    return findings;
+}
 }

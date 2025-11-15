@@ -31,6 +31,7 @@ org\owasp\astf\testcases\bola\strategy\DefaultIdGenerationStrategy.class
 org\owasp\astf\integrations\providers\github\GitHubActionsIntegration.class
 org\owasp\astf\testcases\bola\BolaTestContext.class
 org\owasp\astf\testcases\FunctionLevelAuthTestCase.class
+org\owasp\astf\testcases\OpenApiContractValidationTestCase.class
 org\owasp\astf\core\result\Finding.class
 org\owasp\astf\reporting\XmlReportGenerator.class
 org\owasp\astf\testcases\TestCaseRegistry.class

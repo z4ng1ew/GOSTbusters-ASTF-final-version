@@ -14,6 +14,7 @@ C:\Users\user\Desktop\Новая папка\GOSTbusters-ASTF-final-version\src\m
 C:\Users\user\Desktop\Новая папка\GOSTbusters-ASTF-final-version\src\main\java\org\owasp\astf\testcases\IdorTestCase.java
 C:\Users\user\Desktop\Новая папка\GOSTbusters-ASTF-final-version\src\main\java\org\owasp\astf\testcases\InsecureDeserializationTestCase.java
 C:\Users\user\Desktop\Новая папка\GOSTbusters-ASTF-final-version\src\main\java\org\owasp\astf\testcases\bola\strategy\DefaultIdGenerationStrategy.java
+C:\Users\user\Desktop\Новая папка\GOSTbusters-ASTF-final-version\src\main\java\org\owasp\astf\testcases\OpenApiContractValidationTestCase.java
 C:\Users\user\Desktop\Новая папка\GOSTbusters-ASTF-final-version\src\main\java\org\owasp\astf\testcases\TestCaseRegistry.java
 C:\Users\user\Desktop\Новая папка\GOSTbusters-ASTF-final-version\src\main\java\org\owasp\astf\core\result\Finding.java
 C:\Users\user\Desktop\Новая папка\GOSTbusters-ASTF-final-version\src\main\java\org\owasp\astf\core\discovery\EndpointDiscoveryService.java

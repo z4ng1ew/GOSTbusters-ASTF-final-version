@@ -35,6 +35,7 @@ public class TestCaseRegistry {
         register(new IdorTestCase());
         register(new InsecureDeserializationTestCase());
         register(new MassAssignmentTestCase());
+        register(new OpenApiContractValidationTestCase());
         // register(new SecurityMisconfigurationTestCase());
         // register(new ImproperAssetsManagementTestCase());
         
