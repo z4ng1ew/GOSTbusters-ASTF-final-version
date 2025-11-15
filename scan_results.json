@@ -1,41 +1,25 @@
 {
   "targetUrl" : "https://vbank.open.bankingapi.ru/",
-  "scanStartTime" : "2025-11-14T23:29:50.8002694",
-  "scanEndTime" : "2025-11-14T23:30:15.2599411",
+  "scanStartTime" : "2025-11-15T03:30:59.2098356",
+  "scanEndTime" : "2025-11-15T03:31:03.2875032",
   "summary" : {
-    "totalFindings" : 33,
+    "totalFindings" : 35,
     "bySeverity" : {
       "critical" : 0,
-      "high" : 31,
-      "medium" : 2,
+      "high" : 33,
+      "medium" : 1,
       "low" : 0,
-      "info" : 0
+      "info" : 1
     }
   },
   "findings" : [ {
-    "id" : "ae9b9332-f043-4bb2-9cc9-ca4e8babc1a4",
+    "id" : "38c75040-6e19-4110-b20d-86848cbc9e58",
     "title" : "Authentication Endpoint Requires Manual Review",
     "description" : "Authentication endpoints should be carefully reviewed for weak credentials, account lockout mechanisms, and proper token validation.",
     "severity" : "MEDIUM",
     "testCaseId" : "ASTF-API2-2023",
     "endpoint" : "POST /auth/bank-token",
     "remediation" : "Implement strong password policies, account lockout after failed attempts, and proper token generation using industry standard algorithms."
-  }, {
-    "id" : "IDOR-01",
-    "title" : "Insecure Direct Object Reference",
-    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
-    "severity" : "HIGH",
-    "testCaseId" : "IDOR",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/status",
-    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
-  }, {
-    "id" : "IDOR-01",
-    "title" : "Insecure Direct Object Reference",
-    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
-    "severity" : "HIGH",
-    "testCaseId" : "IDOR",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/close",
-    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
   }, {
     "id" : "INSECURE-DES-01",
     "title" : "Possible Insecure Deserialization",
@@ -45,28 +29,12 @@
     "endpoint" : "https://vbank.open.bankingapi.ru/auth/bank-token",
     "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
   }, {
-    "id" : "INSECURE-DES-01",
-    "title" : "Possible Insecure Deserialization",
-    "description" : "API accepts potentially dangerous payload without validation",
-    "severity" : "HIGH",
-    "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/{account_id}/close",
-    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
-  }, {
-    "id" : "INSECURE-DES-01",
-    "title" : "Possible Insecure Deserialization",
-    "description" : "API accepts potentially dangerous payload without validation",
-    "severity" : "HIGH",
-    "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/product-agreements",
-    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
-  }, {
     "id" : "FLA-01",
     "title" : "Function Level Authorization Bypass",
     "description" : "Пользователь может выполнить DELETE на эндпоинте, где у него только GET права",
     "severity" : "HIGH",
     "testCaseId" : "FUNCTION-LEVEL-AUTH",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/balances",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999",
     "remediation" : "Проверьте права доступа к методам API на уровне авторизации"
   }, {
     "id" : "INSECURE-DES-01",
@@ -74,7 +42,7 @@
     "description" : "API accepts potentially dangerous payload without validation",
     "severity" : "HIGH",
     "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/{account_id}/status",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts",
     "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
   }, {
     "id" : "IDOR-01",
@@ -90,7 +58,7 @@
     "description" : "Пользователь может выполнить DELETE на эндпоинте, где у него только GET права",
     "severity" : "HIGH",
     "testCaseId" : "FUNCTION-LEVEL-AUTH",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/transactions",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/balances",
     "remediation" : "Проверьте права доступа к методам API на уровне авторизации"
   }, {
     "id" : "INSECURE-DES-01",
@@ -98,7 +66,15 @@
     "description" : "API accepts potentially dangerous payload without validation",
     "severity" : "HIGH",
     "testCaseId" : "INSECURE-DESERIALIZATION",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts",
+    "endpoint" : "https://vbank.open.bankingapi.ru/product-agreements",
+    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
+  }, {
+    "id" : "INSECURE-DES-01",
+    "title" : "Possible Insecure Deserialization",
+    "description" : "API accepts potentially dangerous payload without validation",
+    "severity" : "HIGH",
+    "testCaseId" : "INSECURE-DESERIALIZATION",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/{account_id}/status",
     "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
   }, {
     "id" : "INSECURE-DES-01",
@@ -114,71 +90,23 @@
     "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
     "severity" : "HIGH",
     "testCaseId" : "IDOR",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/transactions",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999",
     "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
   }, {
-    "id" : "acd83efe-6eb6-4c2d-bb42-257b79fd9953",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "id" : "IDOR-01",
+    "title" : "Insecure Direct Object Reference",
+    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
     "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "POST /product-agreements",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
-  }, {
-    "id" : "212d17ea-36f5-4fa5-ad2f-1f6e06630e80",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
-    "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "DELETE /payment-consents/{consent_id}",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
-  }, {
-    "id" : "81372c29-8fa5-4c47-9e8b-843a3298a36e",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
-    "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "POST /accounts",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
-  }, {
-    "id" : "78f16511-251f-4418-9e58-e23524773e1e",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
-    "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "PUT /accounts/{account_id}/status",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
-  }, {
-    "id" : "df9cea4d-eb1a-48af-86ee-61e148bd8fa1",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
-    "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "POST /product-agreement-consents/request",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
-  }, {
-    "id" : "9b8dcd29-0662-44d8-8147-09dd5a806250",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
-    "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "POST /payments",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
-  }, {
-    "id" : "e4a7030f-b668-4f24-b829-31785cac307c",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
-    "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "PUT /accounts/{account_id}/close",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+    "testCaseId" : "IDOR",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/close",
+    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
   }, {
     "id" : "FLA-01",
     "title" : "Function Level Authorization Bypass",
     "description" : "Пользователь может выполнить DELETE на эндпоинте, где у него только GET права",
     "severity" : "HIGH",
     "testCaseId" : "FUNCTION-LEVEL-AUTH",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/transactions",
     "remediation" : "Проверьте права доступа к методам API на уровне авторизации"
   }, {
     "id" : "IDOR-01",
@@ -186,50 +114,50 @@
     "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
     "severity" : "HIGH",
     "testCaseId" : "IDOR",
-    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/status",
     "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
   }, {
-    "id" : "758063ae-1844-4752-8f60-4add55532fcd",
+    "id" : "INSECURE-DES-01",
+    "title" : "Possible Insecure Deserialization",
+    "description" : "API accepts potentially dangerous payload without validation",
+    "severity" : "HIGH",
+    "testCaseId" : "INSECURE-DESERIALIZATION",
+    "endpoint" : "https://vbank.open.bankingapi.ru/account-consents/request",
+    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
+  }, {
+    "id" : "IDOR-01",
+    "title" : "Insecure Direct Object Reference",
+    "description" : "Доступ к ресурсу через прямую ссылку на ID без проверки авторизации",
+    "severity" : "HIGH",
+    "testCaseId" : "IDOR",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/acc-9999/transactions",
+    "remediation" : "Добавьте проверку принадлежности ресурса пользователю"
+  }, {
+    "id" : "INSECURE-DES-01",
+    "title" : "Possible Insecure Deserialization",
+    "description" : "API accepts potentially dangerous payload without validation",
+    "severity" : "HIGH",
+    "testCaseId" : "INSECURE-DESERIALIZATION",
+    "endpoint" : "https://vbank.open.bankingapi.ru/accounts/{account_id}/close",
+    "remediation" : "Implement strict validation of input data and avoid deserializing untrusted data"
+  }, {
+    "id" : "bef3c7e1-4b49-4bf6-8240-5dac77288880",
     "title" : "Missing Authentication Controls",
     "description" : "The API endpoint appears to be accessible without proper authentication.",
     "severity" : "HIGH",
     "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "GET /product-agreements/{agreement_id}",
+    "endpoint" : "PUT /accounts/{account_id}/close",
     "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
   }, {
-    "id" : "ac9ebc56-d264-482d-a569-6602bfff4336",
+    "id" : "c6a6bbef-16d7-4d2f-81e4-e363ba2e1ca6",
     "title" : "Missing Authentication Controls",
     "description" : "The API endpoint appears to be accessible without proper authentication.",
     "severity" : "HIGH",
     "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "GET /payments/{payment_id}",
+    "endpoint" : "DELETE /payment-consents/{consent_id}",
     "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
   }, {
-    "id" : "46f87b34-a067-47dc-9363-d66ae62a31be",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
-    "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "GET /payment-consents/{consent_id}",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
-  }, {
-    "id" : "RL-BYPASS-03",
-    "title" : "IP Spoofing Rate Limit Bypass",
-    "description" : "⚠️ MEDIUM: Возможен обход рейт-лимита через подделку IP-адреса в заголовках. Система доверяет заголовкам X-Forwarded-For, X-Real-IP, X-Client-IP, X-Cluster-Client-IP для определения IP клиента.\n\n\uD83D\uDD0D ДЕТАЛИ:\n• Протестировано заголовков: 4\n• Успешных запросов с поддельными IP: 3\n• Рейт-лимит уязвим к IP spoofing атакам",
-    "severity" : "MEDIUM",
-    "testCaseId" : "RATE-LIMIT-BYPASS",
-    "endpoint" : "https://vbank.open.bankingapi.ru/auth/bank-token",
-    "remediation" : "\uD83D\uDEE1️ РЕКОМЕНДАЦИИ:\n\n1. **Никогда не доверяйте клиентским заголовкам для определения IP-адреса**\n2. **Используйте реальный IP из соединения (remote address)**\n3. **Настройте доверенные прокси и правильно конфигурируйте X-Forwarded-For**\n4. **Валидируйте и ограничивайте количество заголовков IP**\n5. **Используйте специализированные решения для определения реального IP**"
-  }, {
-    "id" : "fd6b458a-5b03-4b1d-a311-e7e85e8ce9c9",
-    "title" : "Missing Authentication Controls",
-    "description" : "The API endpoint appears to be accessible without proper authentication.",
-    "severity" : "HIGH",
-    "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "DELETE /product-agreement-consents/{consent_id}",
-    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
-  }, {
-    "id" : "b17a13b8-534c-4e04-b226-045235106b1b",
+    "id" : "eb7845c7-71ea-428c-bad4-c671904feea6",
     "title" : "Missing Authentication Controls",
     "description" : "The API endpoint appears to be accessible without proper authentication.",
     "severity" : "HIGH",
@@ -237,15 +165,71 @@
     "endpoint" : "DELETE /product-agreements/{agreement_id}",
     "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
   }, {
-    "id" : "f5f69551-4cba-428a-b73e-a1a9a033f5a5",
+    "id" : "75e6e5cd-0da4-4262-8db5-040f20df0f7d",
     "title" : "Missing Authentication Controls",
     "description" : "The API endpoint appears to be accessible without proper authentication.",
     "severity" : "HIGH",
     "testCaseId" : "ASTF-API2-2023",
-    "endpoint" : "GET /accounts",
+    "endpoint" : "POST /product-agreement-consents/request",
     "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
   }, {
-    "id" : "8877bbe1-2abe-43df-a6e5-8ffc26d997e5",
+    "id" : "ec43de04-e58f-4c89-9f13-32092ea6908a",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "PUT /accounts/{account_id}/status",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "c009435a-8ab5-4c71-934b-b2b052a4ea7f",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "POST /product-agreements",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "bbe7e0de-4fff-4d56-90fd-1d67931e17a1",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "DELETE /product-agreement-consents/{consent_id}",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "38c493cb-32b2-41f9-a536-229e0e0b9e77",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "POST /payments",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "30b4ecce-11b4-469a-a2d9-f79ab4b83474",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "POST /accounts",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "00faa34f-24d1-4a45-8366-11eb28c1d781",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "GET /payments/{payment_id}",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "6658ff04-2070-4b99-9af8-1a6fa9bf5095",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "GET /product-agreements/{agreement_id}",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "79cd0947-bbe5-4d23-a33e-d206668633ea",
     "title" : "Missing Authentication Controls",
     "description" : "The API endpoint appears to be accessible without proper authentication.",
     "severity" : "HIGH",
@@ -253,7 +237,15 @@
     "endpoint" : "GET /accounts/{account_id}/balances",
     "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
   }, {
-    "id" : "93839f88-4aaf-468f-98d8-223b7c1f2f30",
+    "id" : "8b3e0bdf-ddd5-4cf5-807f-5cffd4e619f7",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "GET /accounts",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "4c4bf4fc-f061-4465-a5a0-4b5e5e060065",
     "title" : "Missing Authentication Controls",
     "description" : "The API endpoint appears to be accessible without proper authentication.",
     "severity" : "HIGH",
@@ -261,7 +253,7 @@
     "endpoint" : "GET /product-agreements",
     "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
   }, {
-    "id" : "05931231-ac60-42c2-a578-688ea39a232e",
+    "id" : "07a81d0f-00f0-4061-8e64-86a25b954381",
     "title" : "Missing Authentication Controls",
     "description" : "The API endpoint appears to be accessible without proper authentication.",
     "severity" : "HIGH",
@@ -269,12 +261,36 @@
     "endpoint" : "GET /product-agreement-consents/{consent_id}",
     "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
   }, {
-    "id" : "046326a9-7ec4-4d93-bafb-72bc4d4060bc",
+    "id" : "ed2b5764-fed2-42eb-8a0e-1894903e8f4a",
     "title" : "Missing Authentication Controls",
     "description" : "The API endpoint appears to be accessible without proper authentication.",
     "severity" : "HIGH",
     "testCaseId" : "ASTF-API2-2023",
     "endpoint" : "GET /accounts/{account_id}",
     "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "5083658b-633f-4a7a-8976-dff9ef5e8ca7",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "GET /accounts/{account_id}/transactions",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "f18a05b7-ee0a-4720-b0b2-92ce83d4b91e",
+    "title" : "Missing Authentication Controls",
+    "description" : "The API endpoint appears to be accessible without proper authentication.",
+    "severity" : "HIGH",
+    "testCaseId" : "ASTF-API2-2023",
+    "endpoint" : "GET /payment-consents/{consent_id}",
+    "remediation" : "Implement consistent authentication checks across all API endpoints that require them."
+  }, {
+    "id" : "RL-INFO-01",
+    "title" : "Rate Limit Protection Verified",
+    "description" : "\uD83D\uDD0D МЕТОДОЛОГИЯ ТЕСТИРОВАНИЯ РЕЙТ-ЛИМИТОВ:\n\n• Протестировано 3 метода обхода рейт-лимитов:\n  1. Быстрые последовательные запросы (15 запросов с интервалом 50ms)\n  2. Ротация User-Agent заголовков (25 различных агентов)\n  3. Спуфинг IP-адреса через X-Forwarded-For и другие заголовки\n• Всего выполнено запросов: 25\n• Тестируемый эндпоинт: POST /auth/bank-token\n\n\uD83D\uDCCA РЕЗУЛЬТАТ:\nСистема корректно ограничивает количество запросов и защищена от базовых методов обхода.",
+    "severity" : "INFO",
+    "testCaseId" : "RATE-LIMIT-BYPASS",
+    "endpoint" : "https://vbank.open.bankingapi.ru/auth/bank-token",
+    "remediation" : "✅ СИСТЕМА ЗАЩИЩЕНА ОТ ОСНОВНЫХ АТАК НА РЕЙТ-ЛИМИТЫ:\n\n• Реализована эффективная защита от быстрых последовательных запросов\n• Рейт-лимитинг корректно работает на публичных эндпоинтах\n• Система устойчива к базовым методам обхода (User-Agent rotation, IP spoofing)\n\n\uD83D\uDCA1 РЕКОМЕНДАЦИИ ДЛЯ ДАЛЬНЕЙШЕГО УЛУЧШЕНИЯ:\n• Регулярно мониторить паттерны запросов на предмет сложных атак\n• Рассмотреть внедрение ML-based систем обнаружения аномалий\n• Тестировать рейт-лимиты в продакшн-среде с реалистичной нагрузкой"
   } ]
 }
