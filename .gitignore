@@ -21,6 +21,8 @@ report.*
 *.yaml
 *.yml
 *.json
+!sbank-openapi.json
+!abank-openapi.json
 !vbank-openapi.yaml
 !vbank-openapi.json
 !pom.xml
