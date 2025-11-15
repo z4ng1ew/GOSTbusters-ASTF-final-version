@@ -82,6 +82,10 @@ public class HttpClient {
         this.client = builder.build();
     }
 
+    // ========================================================================
+    // PUBLIC API: HTTP Methods returning body
+    // ========================================================================
+
     /**
      * Makes a GET request to the specified URL.
      *
@@ -127,7 +131,12 @@ public class HttpClient {
     }
 
     /**
-     * ✅ УЛУЧШЕНО: Метод DELETE с правильной обработкой
+     * Makes a DELETE request to the specified URL.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @return The response body as a string
+     * @throws IOException If the request fails
      */
     public String delete(String url, Map<String, String> headers) throws IOException {
         Request request = createRequest(url, "DELETE", headers, null, null);
@@ -140,7 +149,12 @@ public class HttpClient {
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Метод OPTIONS для получения информации о поддерживаемых методах
+     * Makes an OPTIONS request to the specified URL.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @return The response body as a string
+     * @throws IOException If the request fails
      */
     public String options(String url, Map<String, String> headers) throws IOException {
         Request request = createRequest(url, "OPTIONS", headers, null, null);
@@ -185,8 +199,20 @@ public class HttpClient {
         }
     }
 
+    // ========================================================================
+    // PUBLIC API: Universal request method
+    // ========================================================================
+
     /**
-     * ✅ ДОБАВЛЕНО: Универсальный метод для выполнения HTTP запросов
+     * Universal HTTP request method supporting any HTTP verb.
+     *
+     * @param method The HTTP method (GET, POST, PUT, DELETE, PATCH, OPTIONS, etc.)
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @param contentType The content type of the request (null for GET, HEAD, DELETE)
+     * @param body The request body (null for GET, HEAD, DELETE)
+     * @return The response body as a string
+     * @throws IOException If the request fails
      */
     public String request(String method, String url, Map<String, String> headers, 
                          String contentType, String body) throws IOException {
@@ -201,18 +227,125 @@ public class HttpClient {
         return executeRequest(request);
     }
 
+    // ========================================================================
+    // PUBLIC API: Status code methods (REFACTORED - no duplication)
+    // ========================================================================
+
     /**
-     * ✅ ДОБАВЛЕНО: Метод для получения статус-кода ответа
+     * ✅ REFACTORED: Universal method for getting status code for any HTTP method.
+     *
+     * @param method The HTTP method (GET, POST, PUT, DELETE, etc.)
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @param contentType The content type (null for methods without body)
+     * @param body The request body (null for GET, HEAD, DELETE)
+     * @return The HTTP status code
+     * @throws IOException If the request fails
      */
-    public int getStatusCode(String url, Map<String, String> headers) throws IOException {
-        Request request = createRequest(url, "GET", headers, null, null);
+    public int executeStatusCode(String method, String url, Map<String, String> headers, 
+                                  String contentType, String body) throws IOException {
+        MediaType mediaType = contentType != null ? MediaType.parse(contentType) : null;
+        RequestBody requestBody = null;
+
+        if (body != null && mediaType != null) {
+            requestBody = RequestBody.create(body, mediaType);
+        }
+
+        Request request = createRequest(url, method.toUpperCase(), headers, mediaType, requestBody);
         try (Response response = client.newCall(request).execute()) {
             return response.code();
         }
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Метод для получения полного ответа (код + заголовки + тело)
+     * Gets the HTTP status code for a GET request.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @return The HTTP status code
+     * @throws IOException If the request fails
+     */
+    public int getStatusCode(String url, Map<String, String> headers) throws IOException {
+        return executeStatusCode("GET", url, headers, null, null);
+    }
+
+    /**
+     * Gets the HTTP status code for a POST request.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @param contentType The content type of the request
+     * @param body The request body
+     * @return The HTTP status code
+     * @throws IOException If the request fails
+     */
+    public int postStatusCode(String url, Map<String, String> headers, String contentType, String body) throws IOException {
+        return executeStatusCode("POST", url, headers, contentType, body);
+    }
+
+    /**
+     * Gets the HTTP status code for a PUT request.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @param contentType The content type of the request
+     * @param body The request body
+     * @return The HTTP status code
+     * @throws IOException If the request fails
+     */
+    public int putStatusCode(String url, Map<String, String> headers, String contentType, String body) throws IOException {
+        return executeStatusCode("PUT", url, headers, contentType, body);
+    }
+
+    /**
+     * Gets the HTTP status code for a DELETE request.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @return The HTTP status code
+     * @throws IOException If the request fails
+     */
+    public int deleteStatusCode(String url, Map<String, String> headers) throws IOException {
+        return executeStatusCode("DELETE", url, headers, null, null);
+    }
+
+    /**
+     * Gets the HTTP status code for a PATCH request.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @param contentType The content type of the request
+     * @param body The request body
+     * @return The HTTP status code
+     * @throws IOException If the request fails
+     */
+    public int patchStatusCode(String url, Map<String, String> headers, String contentType, String body) throws IOException {
+        return executeStatusCode("PATCH", url, headers, contentType, body);
+    }
+
+    /**
+     * Gets the HTTP status code for an OPTIONS request.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @return The HTTP status code
+     * @throws IOException If the request fails
+     */
+    public int optionsStatusCode(String url, Map<String, String> headers) throws IOException {
+        return executeStatusCode("OPTIONS", url, headers, null, null);
+    }
+
+    // ========================================================================
+    // PUBLIC API: Full response method
+    // ========================================================================
+
+    /**
+     * Gets the full HTTP response including status code, headers, and body.
+     *
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @return The full HTTP response
+     * @throws IOException If the request fails
      */
     public HttpResponse getFullResponse(String url, Map<String, String> headers) throws IOException {
         Request request = createRequest(url, "GET", headers, null, null);
@@ -222,6 +355,38 @@ public class HttpClient {
             return new HttpResponse(response.code(), responseHeaders, body);
         }
     }
+
+    /**
+     * Gets the full HTTP response for any HTTP method.
+     *
+     * @param method The HTTP method
+     * @param url The target URL
+     * @param headers Additional headers to include
+     * @param contentType The content type (null for methods without body)
+     * @param body The request body (null for GET, HEAD, DELETE)
+     * @return The full HTTP response
+     * @throws IOException If the request fails
+     */
+    public HttpResponse executeFullResponse(String method, String url, Map<String, String> headers,
+                                           String contentType, String body) throws IOException {
+        MediaType mediaType = contentType != null ? MediaType.parse(contentType) : null;
+        RequestBody requestBody = null;
+
+        if (body != null && mediaType != null) {
+            requestBody = RequestBody.create(body, mediaType);
+        }
+
+        Request request = createRequest(url, method.toUpperCase(), headers, mediaType, requestBody);
+        try (Response response = client.newCall(request).execute()) {
+            String responseBody = response.body() != null ? response.body().string() : "";
+            Map<String, List<String>> responseHeaders = extractHeaders(response);
+            return new HttpResponse(response.code(), responseHeaders, responseBody);
+        }
+    }
+
+    // ========================================================================
+    // PUBLIC API: Async request
+    // ========================================================================
 
     /**
      * Makes an asynchronous request to the specified URL.
@@ -267,6 +432,10 @@ public class HttpClient {
         }
     }
 
+    // ========================================================================
+    // PRIVATE: Request building and execution
+    // ========================================================================
+
     /**
      * Creates an HTTP request with the specified parameters.
      *
@@ -287,7 +456,7 @@ public class HttpClient {
             case "GET" -> requestBuilder.get();
             case "HEAD" -> requestBuilder.head();
             case "DELETE" -> requestBuilder.delete();
-            case "OPTIONS" -> requestBuilder.method("OPTIONS", null); // ✅ ДОБАВЛЕНО: OPTIONS method
+            case "OPTIONS" -> requestBuilder.method("OPTIONS", null);
             case "POST" -> requestBuilder.post(body);
             case "PUT" -> requestBuilder.put(body);
             case "PATCH" -> requestBuilder.patch(body);
@@ -347,6 +516,10 @@ public class HttpClient {
         return headers;
     }
 
+    // ========================================================================
+    // PRIVATE: Configuration
+    // ========================================================================
+
     /**
      * Configures proxy settings for the HTTP client.
      *
@@ -389,8 +562,12 @@ public class HttpClient {
         builder.authenticator(authenticator);
     }
 
+    // ========================================================================
+    // INNER CLASSES
+    // ========================================================================
+
     /**
-     * ✅ ДОБАВЛЕНО: Класс для представления полного HTTP ответа
+     * Represents a full HTTP response with status code, headers, and body.
      */
     public static class HttpResponse {
         private final int statusCode;
@@ -497,69 +674,4 @@ public class HttpClient {
 
         void onFailure(Exception e);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
- * ✅ ДОБАВЛЕНО: Метод для получения статус-кода ответа для POST
- */
-public int postStatusCode(String url, Map<String, String> headers, String contentType, String body) throws IOException {
-    MediaType mediaType = contentType != null ? MediaType.parse(contentType) : null;
-    RequestBody requestBody = null;
-    if (body != null && mediaType != null) {
-        requestBody = RequestBody.create(body, mediaType);
-    }
-    Request request = createRequest(url, "POST", headers, mediaType, requestBody);
-    try (Response response = client.newCall(request).execute()) {
-        return response.code();
-    }
-}
-
-/**
- * ✅ ДОБАВЛЕНО: Метод для получения статус-кода ответа для PUT
- */
-public int putStatusCode(String url, Map<String, String> headers, String contentType, String body) throws IOException {
-    MediaType mediaType = contentType != null ? MediaType.parse(contentType) : null;
-    RequestBody requestBody = null;
-    if (body != null && mediaType != null) {
-        requestBody = RequestBody.create(body, mediaType);
-    }
-    Request request = createRequest(url, "PUT", headers, mediaType, requestBody);
-    try (Response response = client.newCall(request).execute()) {
-        return response.code();
-    }
-}
-
-/**
- * ✅ ДОБАВЛЕНО: Метод для получения статус-кода ответа для DELETE
- */
-public int deleteStatusCode(String url, Map<String, String> headers) throws IOException {
-    Request request = createRequest(url, "DELETE", headers, null, null);
-    try (Response response = client.newCall(request).execute()) {
-        return response.code();
-    }
-}
-
-
-
-
-
-
-
-
-
-
-
 }
