@@ -497,4 +497,58 @@ public class HttpClient {
 
         void onFailure(Exception e);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+ * ✅ ДОБАВЛЕНО: Метод для получения статус-кода ответа для POST
+ */
+public int postStatusCode(String url, Map<String, String> headers, String contentType, String body) throws IOException {
+    MediaType mediaType = contentType != null ? MediaType.parse(contentType) : null;
+    RequestBody requestBody = null;
+    if (body != null && mediaType != null) {
+        requestBody = RequestBody.create(body, mediaType);
+    }
+    Request request = createRequest(url, "POST", headers, mediaType, requestBody);
+    try (Response response = client.newCall(request).execute()) {
+        return response.code();
+    }
+}
+
+/**
+ * ✅ ДОБАВЛЕНО: Метод для получения статус-кода ответа для PUT
+ */
+public int putStatusCode(String url, Map<String, String> headers, String contentType, String body) throws IOException {
+    MediaType mediaType = contentType != null ? MediaType.parse(contentType) : null;
+    RequestBody requestBody = null;
+    if (body != null && mediaType != null) {
+        requestBody = RequestBody.create(body, mediaType);
+    }
+    Request request = createRequest(url, "PUT", headers, mediaType, requestBody);
+    try (Response response = client.newCall(request).execute()) {
+        return response.code();
+    }
+}
+
+/**
+ * ✅ ДОБАВЛЕНО: Метод для получения статус-кода ответа для DELETE
+ */
+public int deleteStatusCode(String url, Map<String, String> headers) throws IOException {
+    Request request = createRequest(url, "DELETE", headers, null, null);
+    try (Response response = client.newCall(request).execute()) {
+        return response.code();
+    }
+}
 }
