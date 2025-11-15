@@ -4,6 +4,8 @@ import org.owasp.astf.core.EndpointInfo;
 import org.owasp.astf.core.http.HttpClient;
 import org.owasp.astf.core.result.Finding;
 import org.owasp.astf.core.result.Severity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,14 +13,34 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Tests for API4:2023 Lack of Resources & Rate Limiting.
+ * 
+ * This test case checks if the API properly implements rate limiting
+ * to prevent abuse and DoS attacks. It tests multiple bypass techniques:
+ * - Rapid sequential requests
+ * - User-Agent rotation
+ * - IP header spoofing
+ */
 public class RateLimitBypassTestCase implements TestCase {
-    // ✅ ДОБАВЛЕНО: Статические переменные для предотвращения многократного запуска
-    private static boolean rateLimitTestCompleted = false;
+    private static final Logger logger = LogManager.getLogger(RateLimitBypassTestCase.class);
+    
+    // ✅ ИСПРАВЛЕНО: Теперь отслеживаем протестированные домены, а не глобальное состояние
+    private static final Set<String> testedDomains = ConcurrentHashMap.newKeySet();
     private static final Object RATE_LIMIT_LOCK = new Object();
     
-    // ✅ ДОБАВЛЕНО: Счетчик для отслеживания запросов
-    private static int totalRateLimitRequests = 0;
+    // ✅ Счетчики для метрик
+    private static final AtomicInteger totalRateLimitRequests = new AtomicInteger(0);
+    private static final Map<String, Integer> requestsPerDomain = new ConcurrentHashMap<>();
+    
+    // ✅ Константы для настройки
+    private static final int RAPID_REQUEST_COUNT = 15;
+    private static final int RAPID_REQUEST_DELAY_MS = 50;
+    private static final int SUCCESS_THRESHOLD = 10;
     
     @Override
     public String getId() {
@@ -39,46 +61,69 @@ public class RateLimitBypassTestCase implements TestCase {
     public List<Finding> execute(EndpointInfo endpoint, HttpClient client) throws IOException {
         List<Finding> findings = new ArrayList<>();
 
-        // ✅ ДОБАВЛЕНО: Проверяем, запускался ли тест раньше
+        // ✅ ИСПРАВЛЕНО: Проверяем, тестировали ли уже этот домен
+        String domain = extractDomain(endpoint.getBaseUrl());
+        
         synchronized (RATE_LIMIT_LOCK) {
-            if (rateLimitTestCompleted) {
-                System.out.println("⏩ Rate Limit test already completed - skipping duplicate execution");
+            if (testedDomains.contains(domain)) {
+                logger.debug("Rate Limit test already completed for domain: {} - skipping", domain);
                 return Collections.emptyList();
             }
-            rateLimitTestCompleted = true;
+            testedDomains.add(domain);
         }
 
-        // ✅ УЛУЧШЕНО: Тестируем только публичные эндпоинты без авторизации
+        // ✅ Тестируем только публичные эндпоинты без авторизации
         if (!isPublicEndpoint(endpoint)) {
-            System.out.println("⏭️ Skipping protected endpoint for rate limit test: " + endpoint.getPath());
+            logger.debug("Skipping protected endpoint for rate limit test: {}", endpoint.getPath());
             return Collections.emptyList();
         }
 
-        System.out.println("🔍 Starting Rate Limit Bypass test on endpoint: " + endpoint.getMethod() + " " + endpoint.getPath());
+        logger.info("Starting Rate Limit Bypass test on: {} {}", endpoint.getMethod(), endpoint.getPath());
 
         try {
-            // ✅ УЛУЧШЕНО: Тестируем разные методы обхода рейт-лимита
-            List<Finding> methodFindings = testRateLimitBypassMethods(endpoint, client);
+            // ✅ Тестируем разные методы обхода рейт-лимита
+            List<Finding> methodFindings = testRateLimitBypassMethods(endpoint, client, domain);
             findings.addAll(methodFindings);
 
-            // ✅ ДОБАВЛЕНО: Если уязвимостей не найдено, добавляем информационное сообщение
+            // ✅ Если уязвимостей не найдено, добавляем информационное сообщение
             if (findings.isEmpty()) {
-                findings.add(createRateLimitInfoFinding(endpoint));
+                findings.add(createRateLimitInfoFinding(endpoint, domain));
             }
 
         } catch (Exception e) {
-            System.err.println("❌ Rate Limit test execution error: " + e.getMessage());
+            logger.error("Rate Limit test execution error on {}: {}", endpoint.getPath(), e.getMessage());
             if (isVerboseMode()) {
-                e.printStackTrace();
+                logger.debug("Exception details:", e);
             }
         }
 
-        System.out.println("📊 Rate Limit test completed: " + totalRateLimitRequests + " requests made");
+        int domainRequests = requestsPerDomain.getOrDefault(domain, 0);
+        logger.info("Rate Limit test completed for {}: {} requests made", domain, domainRequests);
+        
         return findings;
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Проверяет, является ли эндпоинт публичным (без авторизации)
+     * ✅ ДОБАВЛЕНО: Извлекает домен из URL для группировки тестов
+     */
+    private String extractDomain(String url) {
+        try {
+            // Извлекаем схему + хост + порт
+            java.net.URL parsedUrl = new java.net.URL(url);
+            String domain = parsedUrl.getProtocol() + "://" + parsedUrl.getHost();
+            if (parsedUrl.getPort() != -1 && parsedUrl.getPort() != 80 && parsedUrl.getPort() != 443) {
+                domain += ":" + parsedUrl.getPort();
+            }
+            return domain;
+        } catch (Exception e) {
+            // Fallback: используем весь URL без path
+            int pathIndex = url.indexOf("/", 8); // Пропускаем https://
+            return pathIndex > 0 ? url.substring(0, pathIndex) : url;
+        }
+    }
+
+    /**
+     * Проверяет, является ли эндпоинт публичным (без авторизации)
      */
     private boolean isPublicEndpoint(EndpointInfo endpoint) {
         String path = endpoint.getPath().toLowerCase();
@@ -104,28 +149,28 @@ public class RateLimitBypassTestCase implements TestCase {
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Тестирует различные методы обхода рейт-лимита
+     * Тестирует различные методы обхода рейт-лимита
      */
-    private List<Finding> testRateLimitBypassMethods(EndpointInfo endpoint, HttpClient client) {
+    private List<Finding> testRateLimitBypassMethods(EndpointInfo endpoint, HttpClient client, String domain) {
         List<Finding> findings = new ArrayList<>();
         
         // ✅ Метод 1: Быстрые последовательные запросы
-        System.out.println("🎯 Testing method 1: Rapid sequential requests");
-        Finding rapidFinding = testRapidRequests(endpoint, client);
+        logger.debug("Testing method 1: Rapid sequential requests");
+        Finding rapidFinding = testRapidRequests(endpoint, client, domain);
         if (rapidFinding != null) {
             findings.add(rapidFinding);
         }
         
         // ✅ Метод 2: Изменение User-Agent
-        System.out.println("🎯 Testing method 2: User-Agent rotation");
-        Finding userAgentFinding = testUserAgentRotation(endpoint, client);
+        logger.debug("Testing method 2: User-Agent rotation");
+        Finding userAgentFinding = testUserAgentRotation(endpoint, client, domain);
         if (userAgentFinding != null) {
             findings.add(userAgentFinding);
         }
         
         // ✅ Метод 3: Изменение IP через заголовки
-        System.out.println("🎯 Testing method 3: IP header spoofing");
-        Finding ipSpoofFinding = testIPSpoofing(endpoint, client);
+        logger.debug("Testing method 3: IP header spoofing");
+        Finding ipSpoofFinding = testIPSpoofing(endpoint, client, domain);
         if (ipSpoofFinding != null) {
             findings.add(ipSpoofFinding);
         }
@@ -134,17 +179,15 @@ public class RateLimitBypassTestCase implements TestCase {
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Тестирует быстрые последовательные запросы
+     * Тестирует быстрые последовательные запросы
      */
-    private Finding testRapidRequests(EndpointInfo endpoint, HttpClient client) {
+    private Finding testRapidRequests(EndpointInfo endpoint, HttpClient client, String domain) {
         int successCount = 0;
-        int requestCount = 15; // Увеличили до 15 для лучшего обнаружения
         
-        System.out.println("⚡ Sending " + requestCount + " rapid requests...");
+        logger.debug("Sending {} rapid requests with {}ms delay", RAPID_REQUEST_COUNT, RAPID_REQUEST_DELAY_MS);
 
-        for (int i = 0; i < requestCount; i++) {
+        for (int i = 0; i < RAPID_REQUEST_COUNT; i++) {
             try {
-                // ✅ Используем пустые заголовки для публичных эндпоинтов
                 Map<String, String> headers = createRateLimitHeaders(i);
                 String response = client.get(endpoint.getFullUrl(), headers);
                 
@@ -153,11 +196,11 @@ public class RateLimitBypassTestCase implements TestCase {
                     successCount++;
                 }
                 
-                totalRateLimitRequests++;
+                incrementRequestCount(domain);
                 
-                // ✅ Небольшая задержка между запросами (50ms)
+                // ✅ Небольшая задержка между запросами
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(RAPID_REQUEST_DELAY_MS);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     break;
@@ -166,30 +209,40 @@ public class RateLimitBypassTestCase implements TestCase {
             } catch (Exception e) {
                 // ✅ Обрабатываем рейт-лимит и другие ошибки
                 if (e.getMessage() != null && e.getMessage().contains("429")) {
-                    System.out.println("✅ Rate limit triggered at request " + (i + 1));
+                    logger.debug("Rate limit triggered at request {}", i + 1);
                     break;
                 }
-                totalRateLimitRequests++;
+                incrementRequestCount(domain);
             }
         }
 
+        logger.debug("Rapid requests test: {}/{} successful", successCount, RAPID_REQUEST_COUNT);
+
         // ✅ Если большинство запросов прошло - уязвимость
-        if (successCount >= 10) {
+        if (successCount >= SUCCESS_THRESHOLD) {
             return new Finding(
                 "RL-BYPASS-01",
                 "Missing Rate Limit Protection",
-                "🚨 CRITICAL: API не имеет эффективной защиты от рейт-лимитинга. " +
-                "Удалось выполнить " + successCount + " из " + requestCount + " быстрых последовательных запросов " +
-                "без получения кода 429 (Too Many Requests).\n\n" +
-                "🔍 ДЕТАЛИ АТАКИ:\n" +
-                "• Тестируемый эндпоинт: " + endpoint.getMethod() + " " + endpoint.getPath() + "\n" +
-                "• Количество успешных запросов: " + successCount + "/" + requestCount + "\n" +
-                "• Интервал между запросами: 50ms\n" +
-                "• Метод атаки: Быстрые последовательные запросы\n\n" +
-                "📈 ВОЗДЕЙСТВИЕ:\n" +
-                "• Возможность DoS-атаки на API\n" +
-                "• Исчерпание ресурсов сервера\n" +
-                "• Нарушение доступности сервиса для других пользователей",
+                String.format(
+                    "🚨 CRITICAL: API не имеет эффективной защиты от рейт-лимитинга. " +
+                    "Удалось выполнить %d из %d быстрых последовательных запросов " +
+                    "без получения кода 429 (Too Many Requests).\n\n" +
+                    "🔍 ДЕТАЛИ АТАКИ:\n" +
+                    "• Тестируемый эндпоинт: %s %s\n" +
+                    "• Домен: %s\n" +
+                    "• Количество успешных запросов: %d/%d\n" +
+                    "• Интервал между запросами: %dms\n" +
+                    "• Метод атаки: Быстрые последовательные запросы\n\n" +
+                    "📈 ВОЗДЕЙСТВИЕ:\n" +
+                    "• Возможность DoS-атаки на API\n" +
+                    "• Исчерпание ресурсов сервера\n" +
+                    "• Нарушение доступности сервиса для других пользователей",
+                    successCount, RAPID_REQUEST_COUNT,
+                    endpoint.getMethod(), endpoint.getPath(),
+                    domain,
+                    successCount, RAPID_REQUEST_COUNT,
+                    RAPID_REQUEST_DELAY_MS
+                ),
                 Severity.HIGH,
                 getId(),
                 endpoint.getFullUrl(),
@@ -219,14 +272,13 @@ public class RateLimitBypassTestCase implements TestCase {
             );
         }
         
-        System.out.println("✅ Rapid requests test: " + successCount + "/" + requestCount + " successful (rate limit working)");
         return null;
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Тестирует ротацию User-Agent для обхода рейт-лимита
+     * Тестирует ротацию User-Agent для обхода рейт-лимита
      */
-    private Finding testUserAgentRotation(EndpointInfo endpoint, HttpClient client) {
+    private Finding testUserAgentRotation(EndpointInfo endpoint, HttpClient client, String domain) {
         String[] userAgents = {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
@@ -249,7 +301,7 @@ public class RateLimitBypassTestCase implements TestCase {
                     successCount++;
                 }
                 
-                totalRateLimitRequests++;
+                incrementRequestCount(domain);
                 
                 // ✅ Задержка между запросами
                 try {
@@ -260,21 +312,27 @@ public class RateLimitBypassTestCase implements TestCase {
                 }
                 
             } catch (Exception e) {
-                totalRateLimitRequests++;
+                incrementRequestCount(domain);
             }
         }
+        
+        logger.debug("User-Agent rotation test: {}/{} successful", successCount, userAgents.length);
         
         // ✅ Если все запросы с разными User-Agent прошли - возможна уязвимость
         if (successCount >= userAgents.length - 1) {
             return new Finding(
                 "RL-BYPASS-02",
                 "User-Agent Based Rate Limit Bypass",
-                "⚠️ MEDIUM: Возможен обход рейт-лимита через смену User-Agent заголовков. " +
-                "Все " + successCount + " запросов с разными User-Agent были обработаны без ограничений.\n\n" +
-                "🔍 ДЕТАЛИ:\n" +
-                "• Протестировано User-Agent: " + userAgents.length + "\n" +
-                "• Успешных запросов: " + successCount + "\n" +
-                "• Рейт-лимит не учитывает User-Agent для идентификации клиентов",
+                String.format(
+                    "⚠️ MEDIUM: Возможен обход рейт-лимита через смену User-Agent заголовков. " +
+                    "Все %d запросов с разными User-Agent были обработаны без ограничений.\n\n" +
+                    "🔍 ДЕТАЛИ:\n" +
+                    "• Домен: %s\n" +
+                    "• Протестировано User-Agent: %d\n" +
+                    "• Успешных запросов: %d\n" +
+                    "• Рейт-лимит не учитывает User-Agent для идентификации клиентов",
+                    successCount, domain, userAgents.length, successCount
+                ),
                 Severity.MEDIUM,
                 getId(),
                 endpoint.getFullUrl(),
@@ -290,9 +348,9 @@ public class RateLimitBypassTestCase implements TestCase {
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Тестирует спуфинг IP через заголовки
+     * Тестирует спуфинг IP через заголовки
      */
-    private Finding testIPSpoofing(EndpointInfo endpoint, HttpClient client) {
+    private Finding testIPSpoofing(EndpointInfo endpoint, HttpClient client, String domain) {
         String[] ipHeaders = {
             "X-Forwarded-For",
             "X-Real-IP", 
@@ -320,7 +378,7 @@ public class RateLimitBypassTestCase implements TestCase {
                     successCount++;
                 }
                 
-                totalRateLimitRequests++;
+                incrementRequestCount(domain);
                 
                 // ✅ Задержка между запросами
                 try {
@@ -331,21 +389,27 @@ public class RateLimitBypassTestCase implements TestCase {
                 }
                 
             } catch (Exception e) {
-                totalRateLimitRequests++;
+                incrementRequestCount(domain);
             }
         }
+        
+        logger.debug("IP spoofing test: {}/{} successful", successCount, ipHeaders.length);
         
         // ✅ Если IP спуфинг работает - уязвимость
         if (successCount >= ipHeaders.length - 1) {
             return new Finding(
                 "RL-BYPASS-03",
                 "IP Spoofing Rate Limit Bypass",
-                "⚠️ MEDIUM: Возможен обход рейт-лимита через подделку IP-адреса в заголовках. " +
-                "Система доверяет заголовкам " + String.join(", ", ipHeaders) + " для определения IP клиента.\n\n" +
-                "🔍 ДЕТАЛИ:\n" +
-                "• Протестировано заголовков: " + ipHeaders.length + "\n" +
-                "• Успешных запросов с поддельными IP: " + successCount + "\n" +
-                "• Рейт-лимит уязвим к IP spoofing атакам",
+                String.format(
+                    "⚠️ MEDIUM: Возможен обход рейт-лимита через подделку IP-адреса в заголовках. " +
+                    "Система доверяет заголовкам %s для определения IP клиента.\n\n" +
+                    "🔍 ДЕТАЛИ:\n" +
+                    "• Домен: %s\n" +
+                    "• Протестировано заголовков: %d\n" +
+                    "• Успешных запросов с поддельными IP: %d\n" +
+                    "• Рейт-лимит уязвим к IP spoofing атакам",
+                    String.join(", ", ipHeaders), domain, ipHeaders.length, successCount
+                ),
                 Severity.MEDIUM,
                 getId(),
                 endpoint.getFullUrl(),
@@ -362,7 +426,7 @@ public class RateLimitBypassTestCase implements TestCase {
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Создает заголовки для тестирования рейт-лимита
+     * Создает заголовки для тестирования рейт-лимита
      */
     private Map<String, String> createRateLimitHeaders(int requestIndex) {
         Map<String, String> headers = new HashMap<>();
@@ -380,32 +444,40 @@ public class RateLimitBypassTestCase implements TestCase {
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Проверяет, является ли ответ рейт-лимитом
+     * Проверяет, является ли ответ рейт-лимитом
      */
     private boolean isRateLimitResponse(String response) {
         if (response == null) return false;
         
         // ✅ Проверяем типичные признаки рейт-лимита
-        return response.toLowerCase().contains("too many requests") ||
-               response.toLowerCase().contains("rate limit") ||
-               response.toLowerCase().contains("429") ||
-               response.toLowerCase().contains("exceeded") ||
-               response.toLowerCase().contains("quota");
+        String lowerResponse = response.toLowerCase();
+        return lowerResponse.contains("too many requests") ||
+               lowerResponse.contains("rate limit") ||
+               lowerResponse.contains("429") ||
+               lowerResponse.contains("exceeded") ||
+               lowerResponse.contains("quota");
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Создает информационную находку когда защита работает
+     * Создает информационную находку когда защита работает
      */
-    private Finding createRateLimitInfoFinding(EndpointInfo endpoint) {
-        String methodology = "🔍 МЕТОДОЛОГИЯ ТЕСТИРОВАНИЯ РЕЙТ-ЛИМИТОВ:\n\n" +
+    private Finding createRateLimitInfoFinding(EndpointInfo endpoint, String domain) {
+        int domainRequests = requestsPerDomain.getOrDefault(domain, 0);
+        
+        String methodology = String.format(
+            "🔍 МЕТОДОЛОГИЯ ТЕСТИРОВАНИЯ РЕЙТ-ЛИМИТОВ:\n\n" +
             "• Протестировано 3 метода обхода рейт-лимитов:\n" +
-            "  1. Быстрые последовательные запросы (15 запросов с интервалом 50ms)\n" +
-            "  2. Ротация User-Agent заголовков (" + totalRateLimitRequests + " различных агентов)\n" +
+            "  1. Быстрые последовательные запросы (%d запросов с интервалом %dms)\n" +
+            "  2. Ротация User-Agent заголовков (6 различных агентов)\n" +
             "  3. Спуфинг IP-адреса через X-Forwarded-For и другие заголовки\n" +
-            "• Всего выполнено запросов: " + totalRateLimitRequests + "\n" +
-            "• Тестируемый эндпоинт: " + endpoint.getMethod() + " " + endpoint.getPath() + "\n\n" +
+            "• Всего выполнено запросов для домена %s: %d\n" +
+            "• Тестируемый эндпоинт: %s %s\n\n" +
             "📊 РЕЗУЛЬТАТ:\n" +
-            "Система корректно ограничивает количество запросов и защищена от базовых методов обхода.";
+            "Система корректно ограничивает количество запросов и защищена от базовых методов обхода.",
+            RAPID_REQUEST_COUNT, RAPID_REQUEST_DELAY_MS,
+            domain, domainRequests,
+            endpoint.getMethod(), endpoint.getPath()
+        );
         
         return new Finding(
             "RL-INFO-01",
@@ -426,7 +498,15 @@ public class RateLimitBypassTestCase implements TestCase {
     }
 
     /**
-     * ✅ ДОБАВЛЕНО: Проверяет, включен ли verbose mode
+     * ✅ ДОБАВЛЕНО: Инкрементирует счетчик запросов для домена
+     */
+    private void incrementRequestCount(String domain) {
+        totalRateLimitRequests.incrementAndGet();
+        requestsPerDomain.merge(domain, 1, Integer::sum);
+    }
+
+    /**
+     * Проверяет, включен ли verbose mode
      */
     private boolean isVerboseMode() {
         return System.getProperty("astf.verbose") != null;
@@ -437,15 +517,30 @@ public class RateLimitBypassTestCase implements TestCase {
      */
     public static void reset() {
         synchronized (RATE_LIMIT_LOCK) {
-            rateLimitTestCompleted = false;
-            totalRateLimitRequests = 0;
+            testedDomains.clear();
+            totalRateLimitRequests.set(0);
+            requestsPerDomain.clear();
         }
     }
     
     /**
-     * ✅ ДОБАВЛЕНО: Получить общее количество запросов
+     * Получить общее количество запросов
      */
     public static int getTotalRequests() {
-        return totalRateLimitRequests;
+        return totalRateLimitRequests.get();
+    }
+    
+    /**
+     * ✅ ДОБАВЛЕНО: Получить количество протестированных доменов
+     */
+    public static int getTestedDomainsCount() {
+        return testedDomains.size();
+    }
+    
+    /**
+     * ✅ ДОБАВЛЕНО: Получить карту запросов по доменам
+     */
+    public static Map<String, Integer> getRequestsPerDomain() {
+        return new HashMap<>(requestsPerDomain);
     }
 }
