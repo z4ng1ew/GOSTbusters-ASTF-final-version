@@ -23,7 +23,33 @@ public class SSRFTestCase implements TestCase {
     @Override
     public List<Finding> execute(EndpointInfo endpoint, HttpClient client) throws IOException {
         List<Finding> findings = new ArrayList<>();
-        // Implementation here
+        
+        // SSRF актуален только для POST/PUT эндпоинтов, которые принимают URL-подобные параметры
+        String method = endpoint.getMethod();
+        if (!"POST".equalsIgnoreCase(method) && !"PUT".equalsIgnoreCase(method)) {
+            return findings;
+        }
+        
+        // Проверяем, может ли эндпоинт быть уязвим (наличие ключевых слов в пути)
+        String path = endpoint.getPath().toLowerCase();
+        if (!path.contains("payment") && !path.contains("consent") && !path.contains("webhook")) {
+            return findings;
+        }
+        
+        // 🔍 В рамках хакатона мы НЕ выполняем реальные SSRF-запросы (это может нарушить правила)
+        // Вместо этого — добавляем рекомендацию на ручной аудит
+        findings.add(new Finding(
+            UUID.randomUUID().toString(),
+            "Potential SSRF Risk",
+            "Эндпоинт может быть уязвим к SSRF, если обрабатывает URL-параметры (например, creditorAccount, bank_code). " +
+            "Требуется ручная проверка на unsafe consumption of external services.",
+            Severity.MEDIUM,
+            getId(),
+            endpoint.getFullUrl(),
+            "Validate and sanitize all URL/hostname inputs. Use allow-lists for external domains. " +
+            "Avoid letting user input control backend HTTP requests."
+        ));
+        
         return findings;
     }
 }
