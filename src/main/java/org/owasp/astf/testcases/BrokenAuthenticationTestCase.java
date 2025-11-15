@@ -18,7 +18,7 @@ import org.owasp.astf.core.result.Severity;
  *
  * ✅ ИСПРАВЛЕНО: 
  * - Используем реальный endpoint.getFullUrl()
- * - Проверяем HTTP-статусы (200 = уязвимость, 401/403 = OK)
+ * - Проверяем HTTP-статусы (200 = уязвимость, 401/403/404 = OK)
  * - Убраны ложные срабатывания
  */
 public class BrokenAuthenticationTestCase implements TestCase {
@@ -93,6 +93,7 @@ public class BrokenAuthenticationTestCase implements TestCase {
 
     /**
      * ✅ ИСПРАВЛЕНО: Проверяем реальный URL и статус-код
+     * ✅ ИГНОРИРУЕМ: 401/403/404 — это нормальная защита аутентификации
      */
     private List<Finding> testMissingAuthentication(EndpointInfo endpoint, HttpClient httpClient) {
         List<Finding> findings = new ArrayList<>();
@@ -137,8 +138,14 @@ public class BrokenAuthenticationTestCase implements TestCase {
                 );
                 findings.add(finding);
                 logger.warn("FOUND MISSING AUTH: {} {} returns {}", method, realUrl, statusCode);
-            } else {
+            } 
+            // ✅ 401/403/404 = OK (аутентификация работает)
+            else if (statusCode == 401 || statusCode == 403 || statusCode == 404) {
                 logger.debug("OK: {} {} returns {} (auth protected)", method, realUrl, statusCode);
+            }
+            // ✅ Другие статусы (500, 429 и т.д.) — игнорируем
+            else {
+                logger.debug("IGNORE: {} {} returns {} (non-auth response)", method, realUrl, statusCode);
             }
 
         } catch (Exception e) {
