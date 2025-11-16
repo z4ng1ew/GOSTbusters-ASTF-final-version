@@ -576,6 +576,20 @@ py get_sbank_consent_token.py
 
 
 
+
+
+
+
+
+
+
+
+Начало:
+```
+mvn clean package -DskipTests
+```
+
+
 Для VBank:
 ```
 .\run_scan_auto.bat https://vbank.open.bankingapi.ru team179 JJqqH33ePjnfCMlyHFfz9Px09SMWvzhO vbank_scan
