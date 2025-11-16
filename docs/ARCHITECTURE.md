@@ -1,183 +1,201 @@
-# Framework Architecture
+# Архитектура GOSTbusters ASTF
 
-## Overview
+## Обзор
 
-The OWASP API Security Testing Framework is designed with a modular architecture to allow for extensibility and maintainability. This document outlines the high-level architecture and key components of the framework.
+GOSTbusters ASTF — это модульный фреймворк для автоматизированного тестирования безопасности API, разработанный специально для хакатона **VTB API Security Hackathon 2025**. Архитектура построена на принципах модульности, расширяемости и соответствия современным Java-стандартам (Java 21).
 
-## Component Architecture
+---
+
+## Компонентная архитектура
 
 ```
-+----------------------------+
-|          CLI Layer         |
-+----------------------------+
-               |
-+----------------------------+
-|        Scanner Core        |
-+----------------------------+
-       /      |       \
-      /       |        \
-+--------+ +--------+ +--------+
-| HTTP   | | Test   | | Report |
-| Client | | Cases  | | Engine |
-+--------+ +--------+ +--------+
++----------------------------------+
+|            CLI Layer             |
+|  (ASTFCli, CICommand)            |
++----------------------------------+
+                   |
++----------------------------------+
+|          Scanner Core            |
+|  (Scanner, ConfigLoader)         |
++----------------------------------+
+       /            |             \
+      /             |              \
++--------+   +---------------+   +---------------+
+| HTTP   |   | Test Cases    |   | Reporting     |
+| Client |   | & Plugins     |   | & Integrations|
++--------+   +---------------+   +---------------+
 ```
 
-### Key Components
+### Ключевые компоненты
 
 1. **CLI Layer** (`org.owasp.astf.cli`)
-    - Parses command-line arguments
-    - Configures and initializes the scanner
-    - Handles user interaction
-    - Manages input/output
+   - `ASTFCli`: основной интерфейс для запуска сканирования с поддержкой аргументов (`--target`, `--openapi`, `--use-gost`, `--header` и др.)
+   - `CICommand`: интеграция с CI/CD (GitHub Actions) через `picocli`
+   - Обработка аутентификации, заголовков и спецификаций OpenAPI
 
 2. **Scanner Core** (`org.owasp.astf.core`)
-    - Orchestrates the scanning process
-    - Manages test case execution
-    - Handles multi-threading and concurrency
-    - Collects and processes results
+   - `Scanner`: оркестратор сканирования, запускает виртуальные потоки (Java 21)
+   - `ConfigLoader`: загрузка конфигурации из файлов, переменных окружения, CLI
+   - `EndpointDiscoveryService`: автоматическое обнаружение эндпоинтов (резервная стратегия)
+   - `OpenApiLoader`: парсинг OpenAPI 3.1+ спецификаций
 
 3. **HTTP Client** (`org.owasp.astf.core.http`)
-    - Manages API communications
-    - Handles authentication
-    - Processes requests and responses
-    - Supports various HTTP methods and content types
+   - Унифицированный клиент на основе OkHttp3
+   - Поддержка всех HTTP-методов, заголовков, тел запросов
+   - Обработка статус-кодов и таймаутов
+   - Встроенная поддержка куки
 
-4. **Test Cases** (`org.owasp.astf.testcases`)
-    - Individual security test implementations
-    - Each test case targets specific vulnerability types
-    - Implements the TestCase interface
-    - Registered and managed by TestCaseRegistry
+4. **Test Cases & Plugins** (`org.owasp.astf.testcases`, `plugin-api`)
+   - **Встроенные тест-кейсы**: полное покрытие OWASP API Security Top 10 2023
+   - **Плагинная архитектура**: динамическая загрузка плагинов через SPI (`PluginLoader`)
+   - `TestCaseRegistry`: управление тест-кейсами (встроенные + адаптированные плагины)
+   - Поддержка банковской специфики (межбанковские заголовки, согласия)
 
-5. **Report Engine** (`org.owasp.astf.reporting`)
-    - Generates reports in various formats (JSON, HTML, XML, SARIF)
-    - Formats findings with appropriate details
-    - Supports different output destinations
+5. **Reporting & Integrations** (`org.owasp.astf.reporting`, `org.owasp.astf.integrations`)
+   - **Генераторы отчётов**: JSON, HTML, XML, SARIF
+   - **CI/CD-интеграции**: GitHub Actions (аннотации, SARIF upload, fail-on-findings)
+   - **Безопасность**: маскировка токенов, санитизация чувствительных данных
 
-6. **Integrations** (`org.owasp.astf.integrations`)
-    - CI/CD integration components
-    - External tool connectors
-    - Notification systems
+6. **Специфика хакатона**
+   - `specifications/`: OpenAPI-спецификации VBank, ABank, SBank
+   - `get_tokens.py`, `get_sbank_consent.py`: автоматизация получения токенов и согласий
+   - Поддержка **ГОСТ-шлюза** через флаг `--use-gost`
 
-## Data Flow
+---
 
-1. User invokes the CLI with scan parameters
-2. CLI configures the scanner with appropriate settings
-3. Scanner discovers or loads target endpoints
-4. For each endpoint, applicable test cases are executed
-5. Test cases use the HTTP client to make API requests
-6. Findings are collected by the scanner
-7. Report engine generates the requested output format
-8. Results are returned to the user
+## Поток данных (Data Flow)
 
-## Key Interfaces
+1. Пользователь запускает CLI:  
+   `java -jar astf.jar scan --target https://vbank.open.bankingapi.ru ...`
+2. `ASTFCli` парсит аргументы и создаёт `ScanConfig`
+3. `Scanner` обрабатывает конфигурацию:
+   - Если указан `--use-gost` → перенаправляет трафик на `api.gost.bankingapi.ru:8443`
+   - Если указан `--openapi` → загружает эндпоинты через `OpenApiLoader`
+4. Для каждого эндпоинта запускаются все активные тест-кейсы:
+   - Встроенные (из `TestCaseRegistry`)
+   - Динамически загруженные плагины (из папки `plugins/`)
+5. Каждый `TestCase` использует `HttpClient` для отправки запросов
+6. Результаты (`Finding`) агрегируются в `ScanResult`
+7. `ReportGenerator` создаёт отчёт в указанном формате
+8. При запуске через `CICommand` — результаты публикуются в GitHub Actions
 
-### TestCase Interface
+---
+
+## Ключевые интерфейсы
+
+### TestCase (встроенные тесты)
 
 ```java
 public interface TestCase {
-    String getId();
-    String getName();
+    String getId();          // Например: "BOLA", "ASTF-API2-2023"
+    String getName();        // Например: "Broken Object Level Authorization"
     String getDescription();
-    List<Finding> execute(EndpointInfo endpoint, HttpClient httpClient) throws IOException;
+    List<Finding> execute(EndpointInfo endpoint, HttpClient client) throws IOException;
 }
 ```
 
-All test cases implement this interface, allowing the scanner to execute them uniformly.
+### Plugin (плагинная архитектура)
 
-### EndpointInfo Class
+```java
+public interface Plugin {
+    String getId();          // Уникальный ID плагина
+    String getName();        // Имя плагина
+    String getDescription();
+    List<Finding> execute(EndpointInfo endpoint, HttpClient client) throws IOException;
+}
+```
+
+Плагины автоматически адаптируются к `TestCase` через `PluginAsTestCaseAdapter` (временно отключено, но архитектура подготовлена).
+
+### EndpointInfo
 
 ```java
 public class EndpointInfo {
-    private String path;
-    private String method;
-    private String contentType;
-    private String requestBody;
-    private boolean requiresAuthentication;
-    
-    // Constructors, getters, etc.
+    private final String baseUrl;       // Например: https://vbank.open.bankingapi.ru
+    private final String path;          // Например: /accounts/{account_id}
+    private final String method;        // GET, POST и т.д.
+    private final boolean requiresAuth; // Требуется ли аутентификация
+    // ... геттеры и getFullUrl()
 }
 ```
 
-Represents an API endpoint to be tested, including path, method, and metadata.
-
-### Finding Class
+### Finding
 
 ```java
 public class Finding {
-    private String id;
-    private String title;
-    private String description;
-    private Severity severity;
-    private String testCaseId;
-    private String endpoint;
-    private String requestDetails;
-    private String responseDetails;
-    private String remediation;
-    private String evidence;
-    
-    // Constructors, getters, etc.
+    private final String id;            // Уникальный ID уязвимости
+    private final String title;         // Краткое название
+    private final String description;   // Подробное описание
+    private final Severity severity;    // CRITICAL, HIGH, MEDIUM, LOW, INFO
+    private final String testCaseId;    // ID тест-кейса или плагина
+    private final String endpoint;      // Пострадавший эндпоинт
+    private final String remediation;   // Рекомендации по исправлению
 }
 ```
 
-Represents a security finding with all relevant details.
+---
 
-## Design Principles
+## Архитектурные принципы
 
-1. **Modularity**: Components are designed with clear boundaries
-2. **Extensibility**: Easy to add new test cases and functionality
-3. **Testability**: Components can be tested in isolation
-4. **Performance**: Efficient execution for large API surfaces
-5. **Usability**: Clear interfaces and documentation
+1. **Модульность**: Чёткое разделение на модули через Maven (`core`, `plugin-api`, `reporting`, `cli`).
+2. **Расширяемость**: 
+   - Добавление тестов — через реализацию `TestCase`
+   - Расширение функционала — через JAR-плагины в папке `plugins/`
+3. **Соответствие стандартам**: 
+   - OWASP API Security Top 10 2023
+   - OpenAPI 3.1+
+   - Open Banking Russia v2.1
+4. **Производительность**: 
+   - Виртуальные потоки (Java 21)
+   - Многопоточность с настраиваемым количеством потоков (`--threads`)
+5. **Безопасность по умолчанию**: 
+   - Маскировка токенов в логах
+   - Санитизация отчётов
+   - Защита от SSRF/XXE в HTTP-клиенте
 
-## Thread Model
+---
 
-The scanner uses a thread pool to execute test cases concurrently:
+## Модель потоков
 
-1. One thread per endpoint-testcase combination
-2. Configurable thread count via `--threads` option
-3. Uses Java 21 virtual threads for efficiency
-4. Results are synchronized to prevent race conditions
+- Используется `Executors.newVirtualThreadPerTaskExecutor()` (Java 21)
+- Один виртуальный поток на комбинацию «эндпоинт + тест-кейс»
+- Максимальное количество одновременных запросов ограничено параметром `--threads` (по умолчанию: 10)
+- Результаты синхронизируются через `synchronized` блоки и `ConcurrentHashMap`
 
-## Adding New Test Cases
+---
 
-To add a new test case:
+## Как добавить новый тест-кейс
 
-1. Create a class implementing the `TestCase` interface
-2. Implement the required methods
-3. Register the test case in `TestCaseRegistry.registerDefaultTestCases()`
-4. Add unit tests for the new test case
+1. Создайте класс в `src/main/java/org/owasp/astf/testcases/`, реализующий `TestCase`
+2. Реализуйте методы `getId()`, `getName()`, `getDescription()`, `execute()`
+3. Зарегистрируйте тест в `TestCaseRegistry.registerDefaultTestCases()`
+4. (Опционально) Напишите unit-тест в `src/test/java/...`
 
-Example:
-
+Пример:
 ```java
-public class NewVulnerabilityTestCase implements TestCase {
+public class MyNewTestCase implements TestCase {
     @Override
-    public String getId() {
-        return "ASTF-API11-2023";
-    }
-
+    public String getId() { return "MY-NEW-TEST"; }
     @Override
-    public String getName() {
-        return "New Vulnerability";
-    }
-
+    public String getName() { return "My New Security Test"; }
     @Override
-    public String getDescription() {
-        return "Tests for a new type of vulnerability";
-    }
-
+    public String getDescription() { return "Тестирует новую уязвимость"; }
     @Override
-    public List<Finding> execute(EndpointInfo endpoint, HttpClient httpClient) throws IOException {
-        // Implement vulnerability detection logic
-        // Return list of findings (or empty list if none found)
+    public List<Finding> execute(EndpointInfo endpoint, HttpClient client) {
+        // Логика проверки...
+        return findings;
     }
 }
 ```
 
-## Future Architecture Enhancements
+---
 
-1. Plugin system for custom test cases
-2. Distributed scanning capabilities
-3. Real-time reporting and notification
-4. Machine learning-based detection improvements
-5. Integration with vulnerability management platforms
+## Планы по архитектуре (до финала)
+
+1. **Полная мультимодульность**: выделение `core`, `openapi`, `testcases`, `reporting` в отдельные Maven-модули.
+2. **Улучшенная плагинная система**: поддержка версионирования, зависимостей между плагинами, горячей перезагрузки.
+3. **Графический интерфейс**: разработка JavaFX UI для настройки и запуска сканирования.
+4. **Расширенная валидация контракта**: полное сравнение OpenAPI-схемы и реального ответа (типы, required, enum, форматы).
+5. **Фаззинг**: автоматическая генерация payload'ов для эндпоинтов.
+
+---

@@ -1,7 +1,3 @@
-Конечно! Вот обновлённый и адаптированный `README.md` для вашего проекта **GOSTbusters ASTF**, полностью соответствующий его архитектуре, функциональности и контексту хакатона **VTB API Security Hackathon 2025**.
-
----
-
 # GOSTbusters ASTF
 
 **GOSTbusters API Security Testing Framework (ASTF)** — это автоматизированный сканер безопасности API, созданный специально для хакатона **VTB API Security Hackathon 2025**. Фреймворк объединяет международные стандарты безопасности (**OWASP API Security Top 10 2023**) с российской спецификой: поддержкой **Open Banking Russia v2.1** и интеграцией с **ГОСТ-шлюзом**.
