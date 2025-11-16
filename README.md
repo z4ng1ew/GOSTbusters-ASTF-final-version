@@ -1,10 +1,11 @@
 
-![alt text](assets/images/GOSTbusters_logo_1.png)
 
 ### **Архитектура решения**
 
 
 Вот структура нашего проекта `GOSTbusters-ASTF-final-version`:
+
+![alt text](assets/images/GOSTbusters_logo_1.png)
 
 ```
 ├── src/main/java/org/owasp/astf/
