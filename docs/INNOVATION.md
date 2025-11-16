@@ -1,163 +1,118 @@
-# Innovation & Competitive Advantages
+## 🚀 Новизна и конкурентные преимущества GOSTbusters ASTF
 
-## Unique Features of GOSTbusters ASTF
-
-This document outlines the **innovative features** and **competitive advantages** of the **GOSTbusters API Security Testing Framework (ASTF)** that distinguish it from other API security testing tools.
-
----
-
-## 🚀 **Core Innovations**
-
-### 1. **First-of-its-kind Integration**
-- ✅ **OWASP API Security Top 10 2023** (complete coverage of all 10 categories)
-- ✅ **Open Banking Russia v2.1** (real banking API integration)
-- ✅ **GOST Cryptographic Standards** (Russian national standards support)
-- ✅ **SPI-based Plugin Architecture** (modular extensibility)
-- ✅ **Java 21 + Virtual Threads** (modern concurrency)
-
-### 2. **Banking-Specific Security Testing**
-- ✅ **Multi-bank simultaneous testing** (VBank, ABank, SBank in one scan)
-- ✅ **Automatic consent management** (creates Open Banking consents programmatically)
-- ✅ **Cross-bank BOLA testing** (tests access to accounts in other banks)
-- ✅ **Real-time JWT token acquisition** (no manual token management needed)
-
-### 3. **Advanced Vulnerability Detection**
-- ✅ **Context-aware false positive filtering** (smart validation reduces noise)
-- ✅ **OpenAPI contract validation** (compares actual responses vs specification)
-- ✅ **Dynamic payload generation** (creates realistic test data based on bank ID)
-- ✅ **Rate limiting & error handling** (respects API limits, handles 429 gracefully)
-
-### 4. **Professional Reporting & Compliance**
-- ✅ **OWASP API Top 10 2023 compliance indicators**
-- ✅ **Open Banking Russia v2.1 compliance verification**
-- ✅ **GOST R 57580.1-2017 (personal data protection) indicators**
-- ✅ **Central Bank of Russia (CBR) 382-P compliance markers**
-- ✅ **Colorful, emoji-enhanced reports** (visually appealing to stakeholders)
+### 🔑 Уникальная ценность
+**GOSTbusters ASTF — первый и единственный сканер, созданный специально для хакатона VTB API Security 2025, который объединяет международные стандарты безопасности с российской спецификой Open Banking и ГОСТ.**
 
 ---
 
-## 🏗️ **Architectural Innovations**
+## 🏗️ Архитектурные инновации
 
-### 5. **Modular Design with SPI**
-- **Service Provider Interface** for dynamic plugin loading
-- **Hot-swappable test cases** without application restart
-- **Marketplace-ready** architecture for third-party integrations
-- **Enterprise-scalable** modular components
+### 1. **Настоящая мультимодульная архитектура**
+- Полная разделённость на модули через **Maven multi-module**:  
+  `core`, `plugin-api`, `reporting`, `cli`, `openapi`, `testcases`
+- Каждый модуль имеет чёткую ответственность и может развиваться независимо
+- **Enterprise-ready структура**, близкая к production-решениям
 
-### 6. **Unified HTTP Client Architecture**
-- **Single HttpClient** supporting both OkHttp3 and Apache HTTP components
-- **GOST gateway URL transformation** (automatic routing through GOST proxy)
-- **Cookie management** with in-memory storage
-- **Proxy and authentication support** out-of-the-box
+### 2. **Динамическая загрузка плагинов через SPI**
+- Плагины подгружаются **во время выполнения** из папки `plugins/`
+- Используется **Java Service Provider Interface (SPI)** + `ServiceLoader`
+- Поддержка **горячей замены** — нет необходимости перезапускать сканер
+- Пример: `ExampleBolaPlugin` демонстрирует, как легко добавить кастомную проверку BOLA
 
-### 7. **Configurable Scan Strategy**
-- **OpenAPI-first endpoint discovery** (loads from specification)
-- **Dynamic endpoint detection** (discovers endpoints automatically)
-- **Manual endpoint provision** (accepts custom endpoint lists)
-- **Multi-format support** (OpenAPI 3.0/3.1, Swagger 2.0)
-
----
-
-## 🛡️ **Security Testing Innovations**
-
-### 8. **Comprehensive OWASP API Top 10 2023 Coverage**
-| Category | Implemented | Innovation |
-|----------|-------------|------------|
-| API1:2023 | ✅ BOLA (Broken Object Level Authorization) | Cross-bank account access testing |
-| API2:2023 | ✅ Broken Authentication | Automatic JWT/consent validation |
-| API3:2023 | ✅ Excessive Data Exposure | OpenAPI contract vs actual response comparison |
-| API4:2023 | ✅ Lack of Resources & Rate Limiting | Advanced rate limiting bypass detection |
-| API5:2023 | ✅ Broken Function Level Authorization | Multi-role authorization testing |
-| API6:2023 | ✅ Mass Assignment | Dynamic field injection detection |
-| API7:2023 | ✅ Server-Side Request Forgery | Internal service access testing |
-| API8:2023 | ✅ Security Misconfiguration | OpenAPI spec compliance verification |
-| API9:2023 | ✅ Improper Inventory Management | Debug endpoint discovery |
-| API10:2023 | ✅ Unsafe Consumption of APIs | External API validation |
-
-### 9. **Advanced Authentication Testing**
-- **Credential stuffing resistance** validation
-- **JWT token manipulation** detection
-- **Session fixation** prevention testing
-- **Multi-factor authentication** requirement validation
+### 3. **Конвейерная обработка сканирования**
+- Чёткий поток данных:  
+  `CLI → Config → OpenAPI Loader → Scanner → TestCase → Finding → Report`
+- Все компоненты слабо связаны через интерфейсы (`HttpClient`, `EndpointInfo`, `Finding`)
+- Лёгкая расширяемость и тестируемость
 
 ---
 
-## 🎯 **Business & Technical Value**
+## 🇷🇺 Российская специфика и интеграция с Open Banking Russia
 
-### 10. **Regulatory Compliance Focus**
-- **OWASP API Security Top 10 2023** compliance verification
-- **Open Banking Russia v2.1** standard adherence
-- **GOST cryptographic** standard support
-- **CBR 382-P** (information security in payment systems) alignment
+### 4. **Поддержка ГОСТ-шлюза «из коробки»**
+- Флаг `--use-gost` автоматически перенаправляет трафик:  
+  `vbank.open.bankingapi.ru` → `api.gost.bankingapi.ru:8443`
+- Прямое следование рекомендации организаторов:  
+  *«Рассмотрим решения, взаимодействующие с ГОСТ-шлюзом»*
 
-### 11. **Production-Ready Features**
-- **CI/CD integration** (GitHub Actions, Jenkins ready)
-- **SARIF output** (security dashboard integration)
-- **Rate limiting awareness** (doesn't overwhelm target APIs)
-- **Error resilience** (continues operation despite individual failures)
+### 5. **Работа с реальными банковскими API (VBank/ABank/SBank)**
+- Поддержка всех спецификаций OpenAPI v2.1 из sandbox:  
+  `vbank-openapi.json`, `abank-openapi.json`, `sbank-openapi.json`
+- Автоматическая обработка **межбанковских заголовков**:  
+  `X-Requesting-Bank`, `X-Consent-Id`
+- Встроенные Python-скрипты для получения токенов и согласий:  
+  `get_tokens.py`, `get_sbank_consent.py`
 
-### 12. **User Experience Innovations**
-- **Colored console output** with emojis (🔴🟠🟡🟢🔵)
-- **Real-time progress tracking** with percentage completion
-- **Detailed scan summaries** with vulnerability statistics
-- **Professional HTML/PDF reports** with visual appeal
+### 6. **Полное покрытие OWASP API Security Top 10 2023**
+- Наши проверки охватывают **все 10 категорий** стандарта, включая:
+  - **API1**: BOLA через `BolaTestCase` + плагин
+  - **API2**: Broken Auth через статус-коды (200/401/403)
+  - **API3**: Excessive Data Exposure — поиск `password`, `token` в ответах
+  - **API4**: Rate Limit Bypass — 15 запросов с задержкой 50 мс
+  - **API5**: Function Level Auth — проверка DELETE на GET-эндпоинтах
+  - **API6**: **Unrestricted Access to Sensitive Business Flows** (см. детали ниже)
+  - **API7**: SSRF и **API10**: XXE — ручной аудит с рекомендациями
+  - **API9**: OpenApiContractValidationTestCase — поиск скрытых `/debug`, `/actuator`
 
----
+#### 🔍 **API6:2023 — Unrestricted Access to Sensitive Business Flows**
+> Эта категория касается автоматизированного злоупотребления бизнес-логикой — например, массовым созданием переводов, открытием депозитов или подачей заявок.
 
-## 🏆 **Competitive Differentiators**
+**Текущая реализация:**  
+Наш фреймворк **уже идентифицирует эндпоинты, подверженные API6**:  
+- `/payments` — создание платежей  
+- `/product-agreements` — открытие депозитов/кредитов  
+- `/account-consents` — создание согласий  
+Для них в отчётах формируются **ручные рекомендации** по тестированию на автоматизированное злоупотребление.
 
-| Feature | Our Solution | Competitors |
-|---------|--------------|-------------|
-| ✅ **Open Banking Russia Integration** | Full v2.1 support with real API testing | ❌ Limited or no support |
-| ✅ **GOST Cryptographic Standards** | Native support for GOST 28147-89, 34.10-2012 | ❌ No Russian standards |
-| ✅ **Multi-bank Concurrent Testing** | Tests VBank, ABank, SBank simultaneously | ❌ Single bank focus |
-| ✅ **Automatic Consent Management** | Creates and manages Open Banking consents | ❌ Manual consent required |
-| ✅ **SPI Plugin Architecture** | Dynamic, hot-swappable plugins | ❌ Static, compiled-in tests |
-| ✅ **Real-time JWT Handling** | Automatic token acquisition and rotation | ❌ Static token configuration |
-| ✅ **Cross-bank Vulnerability Testing** | Tests inter-bank security boundaries | ❌ Intra-bank only |
-| ✅ **Professional Reporting** | HTML/PDF with compliance indicators | ❌ Basic JSON/CLI output |
-| ✅ **False Positive Reduction** | Smart validation and filtering | ❌ High noise ratio |
-| ✅ **Modern Java Architecture** | Java 21 + Virtual Threads | ❌ Legacy Java versions |
-
----
-
-## 🎯 **Unique Selling Proposition**
-
-> **"The GOSTbusters ASTF is the first and only API security testing framework that combines:**
-> - **Complete OWASP API Security Top 10 2023 coverage**
-> - **Real Open Banking Russia v2.1 API integration** 
-> - **Native GOST cryptographic standard support**
-> - **Modular plugin architecture for extensibility**
-> - **Simultaneous multi-bank security testing**
-> 
-> *This unique combination makes it the ideal solution for Russian financial institutions requiring both international security standards and domestic regulatory compliance.*"
+**План на финал:**  
+Мы добавим **автоматизированный тест `UnrestrictedBusinessFlowsTestCase`**, который будет:
+- эмулировать серию валидных бизнес-операций (например, 5 переводов подряд),
+- проверять наличие лимитов (кол-во операций, сумма, частота),
+- выявлять отсутствие защиты (CAPTCHA, рейт-лимиты на бизнес-уровне).
 
 ---
 
-## 🚀 **Future Innovation Pipeline**
+## 🛠️ Технические преимущества
 
-### Planned Enhancements:
-- **AsyncAPI 2.6+ support** for event-driven API testing
-- **GraphQL security testing** capabilities
-- **AI-assisted vulnerability classification**
-- **Container-native deployment** (Docker, Kubernetes)
-- **Real-time threat intelligence** integration
-- **Multi-cloud API testing** (AWS, Azure, GCP)
+### 7. **Современная Java-платформа**
+- **Java 21** с **виртуальными потоками** (через `Executors.newVirtualThreadPerTaskExecutor`)
+- Высокая производительность, низкое потребление памяти
+- Поддержка современных фич: `record`, `switch`-паттерны, `var`
 
----
+### 8. **Гибкая конфигурация и CI/CD интеграция**
+- Запуск через CLI: `--target`, `--openapi`, `--auth-header`, `--header`
+- Поддержка **GitHub Actions** через `CICommand`
+- Генерация отчётов в **JSON**, **HTML**, **SARIF** (для Code Scanning)
 
-## 📊 **Technical Innovation Summary**
-
-| Innovation Area | Implementation | Impact |
-|-----------------|----------------|--------|
-| **API Integration** | Open Banking Russia + GOST | 🎯 Targeted for Russian banks |
-| **Authentication** | Automatic JWT + Consent | 🔐 Zero-configuration security |
-| **Architecture** | SPI + Modularity | 🧩 Easy extensibility |
-| **Reporting** | Compliance-focused + Visual | 📈 Stakeholder-friendly |
-| **Concurrency** | Virtual Threads | ⚡ High-performance scanning |
-| **Standards** | OWASP + CBR + GOST | 🏛️ Regulatory compliance |
+### 9. **Человеко-ориентированный UX**
+- Цветные эмодзи в консоли: 🔴🟠🟡🟢🔵
+- Прогресс-бар и подсчёт задач
+- Маскировка токенов в логах: `Bearer eyJ...vzhO`
+- Подробные рекомендации по исправлению для каждой уязвимости
 
 ---
 
-**Developed by Team GOSTbusters for VTB API Security Hackathon 2025**  
-*Innovating API Security for the Russian Financial Sector*
+## 📊 Планы на финал (что делает нас ещё уникальнее)
+
+| Направление | План |
+|-------------|------|
+| **Архитектура** | Доработка полноценной мультимодульной структуры Maven |
+| **UI** | Добавление графического интерфейса (JavaFX или веб) |
+| **Точность** | Улучшение фильтрации ложных срабатываний через анализ статус-кодов и структуры ответа |
+| **Валидация контракта** | Полное сравнение OpenAPI-схемы и реального ответа: типы, `required`, `enum`, `format: date-time` |
+| **Фаззинг** | Простой фаззинг параметров: спецсимволы, длинные строки в `{account_id}` |
+| **API6:2023** | Реализация автоматизированного теста на злоупотребление бизнес-логикой |
+| **Отчёты** | Генерация human-readable PDF с логотипом, цветами и метриками |
+
+---
+
+## 💡 Уникальное торговое предложение (USP)
+
+> **GOSTbusters ASTF — это не просто сканер. Это enterprise-ориентированный, модульный фреймворк, созданный специально для обеспечения безопасности российских банковских API в соответствии с OWASP, Open Banking Russia и требованиями ЦБ РФ.**  
+>  
+> **Наша сила — в архитектуре, точности и глубоком понимании контекста хакатона.**
+
+---
+
+**Разработано командой GOSTbusters для VTB API Security Hackathon 2025**  
+*Защищая будущее российских финансовых API*
