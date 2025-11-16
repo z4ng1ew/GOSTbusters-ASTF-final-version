@@ -1,4 +1,4 @@
-# Script to save content of .java, .json and .xml files to a text file
+# Script to save content of .java, .json, .xml, .py and .bat files to a text file
 param(
     [string]$SourceDirectory = ".",
     [string]$OutputFile = "all_files_content.txt",
@@ -9,7 +9,7 @@ $SourceFullPath = (Get-Item $SourceDirectory).FullName
 Write-Host "Searching files in: $SourceFullPath" -ForegroundColor Green
 
 # Find files
-$files = Get-ChildItem -Path $SourceDirectory -Recurse -Include "*.java", "*.json", "*.xml" | 
+$files = Get-ChildItem -Path $SourceDirectory -Recurse -Include "*.java", "*.json", "*.xml", "*.py", "*.bat" | 
          Where-Object { $_.PSIsContainer -eq $false }
 
 Write-Host "Found files: $($files.Count)" -ForegroundColor Yellow
@@ -18,11 +18,15 @@ Write-Host "Found files: $($files.Count)" -ForegroundColor Yellow
 $javaFiles = $files | Where-Object { $_.Extension -eq ".java" }
 $jsonFiles = $files | Where-Object { $_.Extension -eq ".json" }
 $xmlFiles = $files | Where-Object { $_.Extension -eq ".xml" }
+$pyFiles = $files | Where-Object { $_.Extension -eq ".py" }
+$batFiles = $files | Where-Object { $_.Extension -eq ".bat" }
 
 Write-Host "File distribution:" -ForegroundColor Cyan
 Write-Host "  .java: $($javaFiles.Count)" -ForegroundColor White
 Write-Host "  .json: $($jsonFiles.Count)" -ForegroundColor White
 Write-Host "  .xml: $($xmlFiles.Count)" -ForegroundColor White
+Write-Host "  .py: $($pyFiles.Count)" -ForegroundColor White
+Write-Host "  .bat: $($batFiles.Count)" -ForegroundColor White
 
 # Create file header
 $header = @"
@@ -31,6 +35,7 @@ PROJECT FILES CONTENT
 Project: $(Split-Path $SourceFullPath -Leaf)
 Created: $(Get-Date)
 Total files: $($files.Count)
+File types: Java ($($javaFiles.Count)), JSON ($($jsonFiles.Count)), XML ($($xmlFiles.Count)), Python ($($pyFiles.Count)), Batch ($($batFiles.Count))
 ===================================================
 
 "@
@@ -53,6 +58,7 @@ foreach ($file in $files) {
 
 ===================================================
 FILE: $relativePath
+Type: $($file.Extension)
 Size: $fileSize bytes
 Modified: $($file.LastWriteTime)
 ===================================================
@@ -83,6 +89,12 @@ SUMMARY:
 Successfully processed: $successCount
 Errors: $errorCount
 Total size: $totalSize bytes ($([math]::Round($totalSize/1KB, 2)) KB)
+File types processed:
+  Java: $($javaFiles.Count)
+  JSON: $($jsonFiles.Count)
+  XML: $($xmlFiles.Count)
+  Python: $($pyFiles.Count)
+  Batch: $($batFiles.Count)
 Completed: $(Get-Date)
 ===================================================
 "@
@@ -95,6 +107,12 @@ Write-Host "PROCESSING COMPLETED!" -ForegroundColor Yellow
 Write-Host "Success: $successCount" -ForegroundColor Green
 Write-Host "Errors: $errorCount" -ForegroundColor Red
 Write-Host "Total size: $([math]::Round($totalSize/1KB, 2)) KB" -ForegroundColor Cyan
+Write-Host "File types processed:" -ForegroundColor Cyan
+Write-Host "  Java: $($javaFiles.Count)" -ForegroundColor White
+Write-Host "  JSON: $($jsonFiles.Count)" -ForegroundColor White
+Write-Host "  XML: $($xmlFiles.Count)" -ForegroundColor White
+Write-Host "  Python: $($pyFiles.Count)" -ForegroundColor White
+Write-Host "  Batch: $($batFiles.Count)" -ForegroundColor White
 Write-Host "Result saved to: $OutputFile" -ForegroundColor Green
 
 # Check created file
