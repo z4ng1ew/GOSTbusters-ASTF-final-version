@@ -58,7 +58,7 @@
 Для расширения функционала используется механизм плагинов (Plugin API).
 ```
 
-Эта структура отражает ключевые компоненты вашего проекта:
+Эта структура отражает ключевые компоненты нашего проекта:
 * **Ядро (`core`)**: Отвечает за логику сканирования.
 * **Тест-кейсы (`testcases`)**: Реализуют конкретные проверки по стандарту OWASP API Top 10.
 * **Плагины (`plugin-api`)**: Предоставляют возможность расширять функциональность без изменения основного кода.
@@ -507,7 +507,7 @@ java -jar target\api-security-testing-framework-1.0-SNAPSHOT.jar scan --target h
     curl https://abank.open.bankingapi.ru/openapi.json -o specifications\abank-openapi.json
     ```
 *   **Команда для запуска сканирования:**
-    *   **Токен для ABank нужно получить отдельно, вызвав `POST /auth/bank-token` у ABank, используя ваш `client_id` и `client_secret` от организаторов.**
+    *   **Токен для ABank нужно получить отдельно, вызвав `POST /auth/bank-token` у ABank, используя наш `client_id` и `client_secret` от организаторов.**
     *   **Предположим, мы получили токен `ABankSpecificToken12345`. Замените `YOUR_ABANK_BEARER_TOKEN` на реальный токен.**
     ```bash
     java -jar target\api-security-testing-framework-1.0-SNAPSHOT.jar scan --target https://abank.open.bankingapi.ru --auth-header "Authorization: Bearer YOUR_ABANK_BEARER_TOKEN" --openapi specifications\abank-openapi.json --output-file scan_results_abank.json
@@ -522,7 +522,7 @@ java -jar target\api-security-testing-framework-1.0-SNAPSHOT.jar scan --target h
     curl https://sberbank.open.bankingapi.ru/openapi.json -o specifications\sberbank-openapi.json
     ```
 *   **Команда для запуска сканирования:**
-    *   **Токен для SberBank нужно получить отдельно, вызвав `POST /auth/bank-token` у SberBank, используя ваш `client_id` и `client_secret` от организаторов.**
+    *   **Токен для SberBank нужно получить отдельно, вызвав `POST /auth/bank-token` у SberBank, используя наш `client_id` и `client_secret` от организаторов.**
     *   **Предположим, мы получили токен `SberBankSpecificToken67890`. Замените `YOUR_SBERBANK_BEARER_TOKEN` на реальный токен.**
     ```bash
     java -jar target\api-security-testing-framework-1.0-SNAPSHOT.jar scan --target https://sberbank.open.bankingapi.ru --auth-header "Authorization: Bearer YOUR_SBERBANK_BEARER_TOKEN" --openapi specifications\sberbank-openapi.json --output-file scan_results_sberbank.json
